@@ -1,0 +1,46 @@
+---
+// src/layouts/Layout.astro
+const { title = "Oscar Djuric" } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <style>
+      /* Global styles that apply across all pages */
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 650px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        background: #121212;
+        color: #e0e0e0;
+      }
+      nav a {
+        color: #4da6ff;
+        margin-right: 1rem;
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
+      hr {
+        border-color: #333;
+        margin: 1.5rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/projects">Projects</a>
+    </nav>
+    <hr />
+    
+    <!-- Page content will be injected here -->
+    <slot /> 
+  </body>
+</html>
