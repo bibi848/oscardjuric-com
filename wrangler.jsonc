@@ -1,8 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "oscardjuric-com",
-  "main": "src/index.ts",
+  "main": "./dist/_worker.js/index.js",
+  "assets": {
+    "directory": "./dist"
+  },
   "compatibility_date": "2026-01-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "routes": [
     { "pattern": "oscardjuric.com", "custom_domain": true },
     { "pattern": "www.oscardjuric.com", "custom_domain": true }
