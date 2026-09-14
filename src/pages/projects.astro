@@ -2,13 +2,16 @@
 import Layout from '../layouts/Layout.astro';
 
 const projects = [
-  { name: "Personal Website", desc: "Built with Astro and hosted on Cloudflare" },
-  { name: "Cool App", desc: "Work in progress project" }
+  { name: "Personal Website", desc: "Built with Astro and hosted on Cloudflare." },
+  { name: "gD-algo", desc: "Investigating historical financial data." },
+  { name: "University Master's Project", desc: "Development of an Automated Ultrasonic Scanning Gantry for Investigating Metal Microstructure." },
+  { name: "Raytracing", desc: "Custom raytracing engine and simulating the soiling effect on Linear Fresnel Reflectors." },
+  { name: "Proxmox Server", desc: ""},
 ];
 ---
 
 <Layout title="Projects | Oscar Djuric">
-  <h1>My Projects</h1>
+  <h1>Projects</h1>
   
   {projects.map((project) => (
     <div style="margin-bottom: 1.5rem;">
