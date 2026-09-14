@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const links = [
+  { href: "mailto:oscar.djuric@gmail.com", value: "oscar.djuric@gmail.com" },
+  { href: "https://www.linkedin.com/in/oscar-djuric/", value: "LinkedIn" },
+  { href: "https://github.com/bibi848", value: "GitHub" },
+];
+---
+
+<Layout title="Contact | Oscar Djuric">
+  <h1>Contact</h1>
+  <p class="intro">
+    Under Contruction.
+  </p>
+
+  <section>
+    <ul class="contact-list">
+      {links.map((link) => (
+        <li>
+          <span class="label">{link.label}</span>
+          <a href={link.href} target="_blank" rel="noopener noreferrer">{link.value}</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Layout>
+
+<style>
+  .intro {
+    color: #ccc;
+    max-width: 36rem;
+  }
+
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .contact-list li {
+    background-color: #151515;
+    border-left: 3px solid var(--color-fuchsia);
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+  }
+
+  .contact-list a {
+    font-size: 1.05rem;
+    word-break: break-word;
+  }
+</style>

@@ -1,8 +1,83 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const focusAreas = [
+  "Under Contruction",
+  "Under Contruction",
+  "Under Contruction",
+  "Under Contruction",
+];
 ---
 
 <Layout title="Oscar Djuric | Home">
-  <h1>Hi, I'm Oscar 👋</h1>
-  <p>Welcome to my personal corner of the web!</p>
+  <section class="hero">
+    <h1>OSCAR DJURIC</h1>
+    <p class="tagline">
+      High-Performance Computing PhD student at Imperial College London.
+    </p>
+    <p>
+      Department of Aeronautics, SherwinLab
+    </p>
+  </section>
+
+  <section>
+    <h2>Under Contruction</h2>
+    <p>
+      Under construction.
+    </p>
+  </section>
+
+  <section>
+    <h2>Under Contruction</h2>
+    <ul class="focus-list">
+      {focusAreas.map((area) => <li>{area}</li>)}
+    </ul>
+  </section>
+
+  <section>
+    <h2>Under Contruction</h2>
+    <p>
+      Under Contruction
+    </p>
+  </section>
+
+  <section class="cta">
+    <h2>Let's Connect</h2>
+    <p>
+      Want to work together or just say hi? <a href="/contact">Get in touch</a>
+    </p>
+  </section>
 </Layout>
+
+<style>
+  .hero {
+    margin-bottom: 1rem;
+  }
+
+  .tagline {
+    font-size: 1.25rem;
+    color: #ccc;
+    max-width: 40rem;
+  }
+
+  .focus-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .focus-list li {
+    background-color: #151515;
+    border-left: 3px solid var(--color-fuchsia);
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .cta {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #222;
+  }
+</style>
