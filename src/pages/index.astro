@@ -6,25 +6,34 @@ const education = [
     period: '10/2026 – Present',
     title: 'PhD, Computational Engineering',
     org: 'Imperial College London — Department of Aeronautics, SherwinLab',
-    detail: 'Novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters. Industrial partners are McLaren F1, Rolls-Royce, and UKAEA. Contributing towards the development of Nektar++.',
+    details: [
+      'Novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters.',
+      'Industrial partners: McLaren F1, Rolls-Royce, and UKAEA.',
+      'Contributing towards the development of Nektar++.',
+    ],
   },
   {
     period: '09/2022 – 06/2026',
     title: 'MEng Mechanical Engineering',
     org: 'University of Bristol',
-    detail: "Mechanical Engineering Performance Prize (Valedictorian), Bechtel Industrial Project Group Prize (Best Master's project), IMechE Best Student & IMechE Best Project. Master's Project: Sensing, Imaging and Signal Processing.",
+    details: [
+      'Mechanical Engineering Performance Prize (Valedictorian).',
+      'Bechtel Industrial Project Group Prize (Best Master\'s project).',
+      'IMechE Best Student & IMechE Best Project.',
+      'Master\'s Project: Sensing, Imaging and Signal Processing.',
+    ],
   },
   {
-    period: '07/2024 - 07/2025',
+    period: '07/2024 – 07/2025',
     title: 'University Year Abroad',
     org: 'Queensland University of Technology',
-    detail: 'GPA: 6.875/7'
+    details: ['GPA: 6.875/7'],
   },
   {
-    period: '09/2020 - 07/2022',
+    period: '09/2020 – 07/2022',
     title: 'A Levels',
     org: 'Harris Westminster Sixth Form',
-    detail: 'Physics, Chemistry, Mathematics, Further Mathematics'
+    details: ['Physics, Chemistry, Mathematics, Further Mathematics'],
   },
 ];
 
@@ -33,13 +42,30 @@ const experience = [
     period: '06/2026 – 09/2026',
     title: 'SWE Intern',
     org: 'Cloudflare',
-    detail: 'Developed the Data Centre Security & Compliance Portal, a web-based tool with new automation workflows for the DCSC Team. Designed a full Vision-Language Model Pipeline to extract text data from PDFs and PNGs running on Cloudflare hardware with asynchronous task completion.',
+    details: [
+      'Developed the Data Centre Security & Compliance Portal, a web-based tool with new automation workflows for the DCSC Team.',
+      'Designed a full Vision-Language Model Pipeline to extract text data from PDFs and PNGs running on Cloudflare hardware with asynchronous task completion.',
+    ],
   },
   {
     period: '07/2025 – 09/2025',
     title: 'Data & Analytics Intern',
     org: 'Salute (previously Northshore)',
-    detail: 'blah blah',
+    details: [
+      'Developed and automated data pipelines using Python, Power BI, and Power Automate.',
+      'Designed algorithms for automated error detection, removing the need for human data handling.',
+      'Optimised ETL workflows and transitioned systems to an ELT architecture using SQL, processing over 2 million data points per hour.',
+    ],
+  },
+  {
+    period: '11/2024 – 04/2025',
+    title: 'Concentrated Solar Power Research Intern',
+    org: 'Queensland University of Technology',
+    details: [
+      'Developed and validated ray-tracing and performance models for Linear Fresnel Reflectors (LFR).',
+      'Incorporated environmental data to achieve predictions within 1% of reference systems.',
+      'Implemented multi-threading, reducing simulation runtime by 79%.',
+    ],
   },
 ];
 ---
@@ -62,55 +88,62 @@ const experience = [
     </div>
   </section>
 
-  <section class="content-section about">
-    <h2>About</h2>
-    <p>
-      I'm a PhD researcher working on high-performance computing methods for
-      aeronautics, based in the SherwinLab at Imperial College London. My work
-      sits at the intersection of numerical methods, large-scale simulation,
-      and the systems those simulations run on — replace this paragraph with
-      your own summary of what you actually work on day to day.
-    </p>
-  </section>
+  <div class="page-wrapper">
+    <section class="content-section about">
+      <h2>About</h2>
+      <p>
+        I'm a PhD researcher working on high-performance computing methods for
+        aeronautical simulations, based in the SherwinLab at Imperial College London. My work focuses on novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters, closely partnering with McLaren F1, Rolls-Royce, and UKAEA. I specialise in C++, Python, and building data-driven engineering solutions that scale.
+      </p>
+    </section>
 
-  <section class="content-section">
-    <h2>Education</h2>
-    <ul class="timeline">
-      {education.map((item) => (
-        <li class="timeline-item">
-          <span class="timeline-period">{item.period}</span>
-          <div class="timeline-body">
-            <h3>{item.title}</h3>
-            <p class="timeline-org">{item.org}</p>
-            <p class="timeline-detail">{item.detail}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
-  </section>
+    <section class="content-section">
+      <h2>Education</h2>
+      <ul class="timeline">
+        {education.map((item) => (
+          <li class="timeline-item">
+            <span class="timeline-period">{item.period}</span>
+            <div class="timeline-body">
+              <h3>{item.title}</h3>
+              <p class="timeline-org">{item.org}</p>
+              <ul class="timeline-details">
+                {item.details.map((point) => (
+                  <li>{point}</li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
 
-  <section class="content-section">
-    <h2>Experience</h2>
-    <ul class="timeline">
-      {experience.map((item) => (
-        <li class="timeline-item">
-          <span class="timeline-period">{item.period}</span>
-          <div class="timeline-body">
-            <h3>{item.title}</h3>
-            <p class="timeline-org">{item.org}</p>
-            <p class="timeline-detail">{item.detail}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
-  </section>
+    <section class="content-section">
+      <h2>Experience</h2>
+      <ul class="timeline">
+        {experience.map((item) => (
+          <li class="timeline-item">
+            <span class="timeline-period">{item.period}</span>
+            <div class="timeline-body">
+              <h3>{item.title}</h3>
+              <p class="timeline-org">{item.org}</p>
+              <ul class="timeline-details">
+                {item.details.map((point) => (
+                  <li>{point}</li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
 
-  <section class="content-section cta">
-    <h2>Let's Connect</h2>
-    <p>
-      Want to work together? <a href="/contact">Get in touch</a>
-    </p>
-  </section>
+    <section class="content-section cta">
+      <h2>Let's Connect</h2>
+      <p>
+        Want to work together? <a href="/contact">Get in touch</a>
+      </p>
+    </section>
+  </div>
 </Layout>
 
 <style>
@@ -125,27 +158,28 @@ const experience = [
     display: block;
   }
 
-  /* --- Hero --- */
   .hero {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    min-height: 100svh;
-    height: 100svh;
-    margin: -5.5rem -1.5rem 0;
-    padding: 76px 1.5rem 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    background: transparent; /* Made transparent to reveal particle canvas */
-    overflow: hidden;
-  }
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1;
+      height: 100svh;
+      padding: 76px 1.5rem 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      background: transparent;
+      overflow: hidden;
+      pointer-events: none;
+    }
 
   .hero-content {
-    will-change: transform, opacity;
-    max-width: 72rem;
-  }
+      pointer-events: auto; /* Restores interactivity for text/links inside hero */
+      will-change: opacity;
+      max-width: 72rem;
+    }
 
   .name {
     font-family: var(--font-display);
@@ -202,33 +236,31 @@ const experience = [
     50% { transform: translateY(4px); }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .scroll-hint .arrow {
-      animation: none;
-    }
+  .page-wrapper {
+    position: relative;
+    z-index: 2;
+    margin-top: 92vh;
+    background: rgba(10, 10, 10, 0);
+    padding: 4rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   /* --- Content sections --- */
   .content-section {
-    position: relative;
-    z-index: 2;
+    width: 100%;
     max-width: 40rem;
-    margin-top: 18vh;
-    padding: 2.5rem 0;
-    background: linear-gradient(90deg, rgba(10,10,10,0.98), rgba(10,10,10,0.92) 75%, rgba(10,10,10,0));
+    margin-bottom: 4rem; /* Standard, tight gap between sections */
     opacity: 0.001;
-    transform: translateY(14vh);
+    transform: translateY(40px);
     transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.2, 0.75, 0.2, 1);
   }
 
   .content-section.is-visible {
     opacity: 1;
     transform: translateY(0);
-  }
-
-  .about {
-    margin-top: -3vh;
-    padding-top: 18vh;
   }
 
   .content-section > p {
@@ -251,7 +283,7 @@ const experience = [
     gap: 1rem;
     border-left: 3px solid var(--color-fuchsia);
     padding: 0.75rem 0 0.75rem 1.25rem;
-    background-color: #131313;
+    background-color: rgba(19, 19, 19, 0.8);
   }
 
   .timeline-period {
@@ -272,15 +304,24 @@ const experience = [
     font-size: 0.85rem;
   }
 
-  .timeline-detail {
-    margin: 0;
-    color: #aaa;
+  .timeline-details {
+    margin: 0.5rem 0 0;
+    padding-left: 1.2rem;
+    color: #fff6f6;
     font-size: 0.9rem;
     line-height: 1.5;
   }
 
+  .timeline-details li {
+    margin-bottom: 0.35rem;
+  }
+
+  .timeline-details li::marker {
+    color: var(--color-white);
+  }
+
   .cta {
-    margin-top: 1rem;
+    margin-bottom: 1rem;
     padding-top: 1.5rem;
     border-top: 1px solid #222;
   }
@@ -290,6 +331,9 @@ const experience = [
       opacity: 1;
       transform: none;
       transition: none;
+    }
+    .scroll-hint .arrow {
+      animation: none;
     }
   }
 
@@ -302,7 +346,7 @@ const experience = [
 </style>
 
 <script>
-  // --- Hero fade + rising content ---
+  // --- Hero fade + static handling ---
   const heroContent = document.getElementById('hero-content');
   const scrollHint = document.getElementById('scroll-hint');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -313,7 +357,7 @@ const experience = [
     const progress = Math.min(window.scrollY / (vh * 0.72), 1);
     if (heroContent) {
       heroContent.style.opacity = String(1 - progress);
-      if (!reduceMotion) heroContent.style.transform = `translate3d(0, ${progress * -18}vh, 0)`;
+      // Transform logic removed completely so the text stays strictly static!
     }
     if (scrollHint) scrollHint.style.opacity = String(Math.max(0, 1 - progress * 3));
   }
@@ -412,7 +456,6 @@ const experience = [
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (const p of particles) {
-        // Strong drag gives the trail a slow, honey-like quality.
         p.vx *= 0.965;
         p.vy *= 0.965;
         const dx = cursorX - p.x;

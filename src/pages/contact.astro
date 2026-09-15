@@ -5,7 +5,7 @@ const links = [
   { href: "mailto:oscar.djuric@gmail.com", value: "oscar.djuric@gmail.com" },
   { href: "https://www.linkedin.com/in/oscar-djuric/", value: "LinkedIn" },
   { href: "https://github.com/bibi848", value: "GitHub" },
-  { href: "https://www.youtube.com/", value: "My CV"}
+  { href: "/CV_Oscar_Djuric.pdf", value: "Download CV", download: "CV_Oscar_Djuric.pdf" }
 ];
 ---
 
@@ -20,7 +20,14 @@ const links = [
       {links.map((link) => (
         <li>
           <span class="label">{link.label}</span>
-          <a href={link.href} target="_blank" rel="noopener noreferrer">{link.value}</a>
+          <a 
+            href={link.href} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            download={link.download || undefined}
+          >
+            {link.value}
+          </a>
         </li>
       ))}
     </ul>
