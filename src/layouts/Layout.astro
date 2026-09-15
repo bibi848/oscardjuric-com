@@ -6,7 +6,7 @@ const { title } = Astro.props;
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/projects", label: "Projects"},
+  { href: "/projects", label: "Projects" },
   { href: "/contact", label: "Contact" },
 ];
 ---
@@ -17,18 +17,38 @@ const navLinks = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <header class="topbar">
-      <nav class="topbar-inner">
-        <a class="brand" href="/">OSCAR DJURIC</a>
-        <ul class="nav-links">
-          {navLinks.map((link) => (
-            <li><a href={link.href}>{link.label}</a></li>
-          ))}
-        </ul>
-      </nav>
+      <a class="brand" href="/">Oscar Djuric</a>
+
+      <button
+        id="menu-toggle"
+        class="menu-toggle"
+        type="button"
+        aria-label="Toggle navigation menu"
+        aria-expanded="false"
+        aria-controls="squircle-menu"
+      >
+        <span class="line line1"></span>
+        <span class="line line2"></span>
+        <span class="line line3"></span>
+      </button>
     </header>
+
+    <nav id="squircle-menu" class="squircle-menu" aria-hidden="true">
+      {navLinks.map((link, i) => (
+        <a href={link.href} class={`squircle squircle-${i + 1}`}>
+          {link.label}
+        </a>
+      ))}
+    </nav>
 
     <main>
       <slot />
@@ -37,6 +57,46 @@ const navLinks = [
     <footer>
       <p>&copy; {new Date().getFullYear()} Oscar Djuric</p>
     </footer>
+
+    <script>
+      const toggle = document.getElementById("menu-toggle");
+      const menu = document.getElementById("squircle-menu");
+
+      const closeMenu = () => {
+        toggle?.classList.remove("open");
+        menu?.classList.remove("open");
+        toggle?.setAttribute("aria-expanded", "false");
+        menu?.setAttribute("aria-hidden", "true");
+      };
+
+      const openMenu = () => {
+        toggle?.classList.add("open");
+        menu?.classList.add("open");
+        toggle?.setAttribute("aria-expanded", "true");
+        menu?.setAttribute("aria-hidden", "false");
+      };
+
+      toggle?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = toggle.classList.contains("open");
+        isOpen ? closeMenu() : openMenu();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!menu?.classList.contains("open")) return;
+        const target = e.target as Node;
+        if (menu.contains(target) || toggle?.contains(target)) return;
+        closeMenu();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMenu();
+      });
+
+      menu?.querySelectorAll("a").forEach((a) => {
+        a.addEventListener("click", closeMenu);
+      });
+    </script>
   </body>
 </html>
 
@@ -44,13 +104,18 @@ const navLinks = [
   :root {
     --color-black: #0a0a0a;
     --color-fuchsia: #d6006c;
-    --color-white: #ffffff;
     --color-fuchsia-soft: #ff4fa3;
-    --font-body: 'Helvetica Neue', Arial, sans-serif;
+    --color-white: #ffffff;
+    --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    --font-body: Inter, system-ui, -apple-system, sans-serif;
   }
 
   * {
     box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   html, body {
@@ -61,65 +126,143 @@ const navLinks = [
     font-family: var(--font-body);
   }
 
-  /* --- Top bar --- */
+  /* --- Top Bar --- */
   .topbar {
-    width: 100%;
-    background-color: var(--color-fuchsia);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  }
-
-  .topbar-inner {
-    max-width: 1100px;
-    margin: 0 auto;
+    left: 0;
+    right: 0;
+    height: 76px;
+    z-index: 150;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.5rem;
+    padding: 0 1.5rem;
+    background: var(--color-fuchsia);
   }
 
   .brand {
     color: var(--color-black);
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-weight: 700;
     font-size: 1.1rem;
-    letter-spacing: 0.08em;
-    text-decoration: none;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 2rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .nav-links a {
-    color: var(--color-black);
-    text-decoration: none;
-    font-weight: 600;
     letter-spacing: 0.03em;
+    text-decoration: none;
     text-transform: uppercase;
-    font-size: 0.9rem;
-    transition: opacity 0.15s ease;
   }
 
-  .nav-links a:hover {
-    opacity: 0.6;
+  .topbar-mark {
+    color: var(--color-black);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+    margin-left: 1.5rem;
   }
 
-  /* --- Main content --- */
+  /* --- Simple Clean Hamburger Toggle --- */
+  .menu-toggle {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    z-index: 210;
+  }
+
+  .menu-toggle .line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background-color: var(--color-black);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  }
+
+  .menu-toggle.open .line1 {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .menu-toggle.open .line2 {
+    opacity: 0;
+  }
+
+  .menu-toggle.open .line3 {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* --- Vertical Squircle Bubbles Menu --- */
+  .squircle-menu {
+    position: fixed;
+    top: 86px;
+    right: 1.5rem;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .squircle {
+    width: 140px;
+    height: 52px;
+    background-color: var(--color-fuchsia);
+    color: var(--color-black);
+    border-radius: 20px; /* Modern squircle shape */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translateY(-15px) scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.25s ease, background-color 0.2s ease, color 0.2s ease;
+    pointer-events: none;
+  }
+
+  .squircle-1 { transition-delay: 0.03s; }
+  .squircle-2 { transition-delay: 0.08s; }
+  .squircle-3 { transition-delay: 0.13s; }
+
+  .squircle-menu.open .squircle {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .squircle:hover,
+  .squircle:focus-visible {
+    background-color: var(--color-white);
+    color: var(--color-black);
+    transform: translateY(-2px) scale(1.03);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .squircle,
+    .menu-toggle .line {
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* --- Main Content --- */
   main {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 3rem 1.5rem 5rem;
+    padding: 7rem 1.5rem 5rem;
     min-height: 70vh;
   }
 
   h1, h2, h3 {
     color: var(--color-white);
+    font-family: var(--font-display);
+    font-weight: 700;
   }
 
   h1 {
@@ -129,8 +272,9 @@ const navLinks = [
 
   h2 {
     color: var(--color-fuchsia-soft);
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     margin-top: 2.5rem;
+    font-weight: 600;
   }
 
   a {

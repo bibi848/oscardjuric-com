@@ -1,47 +1,111 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const focusAreas = [
-  "Under Contruction",
-  "Under Contruction",
-  "Under Contruction",
-  "Under Contruction",
+const education = [
+  {
+    period: '10/2026 – Present',
+    title: 'PhD, Computational Engineering',
+    org: 'Imperial College London — Department of Aeronautics, SherwinLab',
+    detail: 'Novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters. Industrial partners are McLaren F1, Rolls-Royce, and UKAEA. Contributing towards the development of Nektar++.',
+  },
+  {
+    period: '09/2022 – 06/2026',
+    title: 'MEng Mechanical Engineering',
+    org: 'University of Bristol',
+    detail: "Mechanical Engineering Performance Prize (Valedictorian), Bechtel Industrial Project Group Prize (Best Master's project), IMechE Best Student & IMechE Best Project. Master's Project: Sensing, Imaging and Signal Processing.",
+  },
+  {
+    period: '07/2024 - 07/2025',
+    title: 'University Year Abroad',
+    org: 'Queensland University of Technology',
+    detail: 'GPA: 6.875/7'
+  },
+  {
+    period: '09/2020 - 07/2022',
+    title: 'A Levels',
+    org: 'Harris Westminster Sixth Form',
+    detail: 'Physics, Chemistry, Mathematics, Further Mathematics'
+  },
+];
+
+const experience = [
+  {
+    period: '06/2026 – 09/2026',
+    title: 'SWE Intern',
+    org: 'Cloudflare',
+    detail: 'Developed the Data Centre Security & Compliance Portal, a web-based tool with new automation workflows for the DCSC Team. Designed a full Vision-Language Model Pipeline to extract text data from PDFs and PNGs running on Cloudflare hardware with asynchronous task completion.',
+  },
+  {
+    period: '07/2025 – 09/2025',
+    title: 'Data & Analytics Intern',
+    org: 'Salute (previously Northshore)',
+    detail: 'blah blah',
+  },
 ];
 ---
 
-<Layout title="Oscar Djuric | Home">
+<Layout title="Oscar Djuric">
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
   <section class="hero">
-    <h1>OSCAR DJURIC</h1>
-    <p class="tagline">
-      High-Performance Computing PhD student at Imperial College London.
-    </p>
+    <div class="hero-content" id="hero-content">
+      <h1 class="name">
+        <span class="first">OSCAR</span>
+        <span class="last">DJURIC</span>
+      </h1>
+      <p class="tagline">High-Performance Computing PhD student at Imperial College London</p>
+      <p class="dept">Department of Aeronautics — SherwinLab</p>
+    </div>
+    <div class="scroll-hint" id="scroll-hint">
+      <span>Scroll</span>
+      <span class="arrow">&darr;</span>
+    </div>
+  </section>
+
+  <section class="content-section about">
+    <h2>About</h2>
     <p>
-      Department of Aeronautics, SherwinLab
+      I'm a PhD researcher working on high-performance computing methods for
+      aeronautics, based in the SherwinLab at Imperial College London. My work
+      sits at the intersection of numerical methods, large-scale simulation,
+      and the systems those simulations run on — replace this paragraph with
+      your own summary of what you actually work on day to day.
     </p>
   </section>
 
-  <section>
-    <h2>Under Contruction</h2>
-    <p>
-      Under construction.
-    </p>
-  </section>
-
-  <section>
-    <h2>Under Contruction</h2>
-    <ul class="focus-list">
-      {focusAreas.map((area) => <li>{area}</li>)}
+  <section class="content-section">
+    <h2>Education</h2>
+    <ul class="timeline">
+      {education.map((item) => (
+        <li class="timeline-item">
+          <span class="timeline-period">{item.period}</span>
+          <div class="timeline-body">
+            <h3>{item.title}</h3>
+            <p class="timeline-org">{item.org}</p>
+            <p class="timeline-detail">{item.detail}</p>
+          </div>
+        </li>
+      ))}
     </ul>
   </section>
 
-  <section>
-    <h2>Under Contruction</h2>
-    <p>
-      Under Contruction
-    </p>
+  <section class="content-section">
+    <h2>Experience</h2>
+    <ul class="timeline">
+      {experience.map((item) => (
+        <li class="timeline-item">
+          <span class="timeline-period">{item.period}</span>
+          <div class="timeline-body">
+            <h3>{item.title}</h3>
+            <p class="timeline-org">{item.org}</p>
+            <p class="timeline-detail">{item.detail}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
   </section>
 
-  <section class="cta">
+  <section class="content-section cta">
     <h2>Let's Connect</h2>
     <p>
       Want to work together? <a href="/contact">Get in touch</a>
@@ -50,34 +114,330 @@ const focusAreas = [
 </Layout>
 
 <style>
+  /* --- Particle canvas --- */
+  #particle-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    display: block;
+  }
+
+  /* --- Hero --- */
   .hero {
-    margin-bottom: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    min-height: 100svh;
+    height: 100svh;
+    margin: -5.5rem -1.5rem 0;
+    padding: 76px 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    background: transparent; /* Made transparent to reveal particle canvas */
+    overflow: hidden;
+  }
+
+  .hero-content {
+    will-change: transform, opacity;
+    max-width: 72rem;
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.02em;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-size: clamp(3.25rem, 12vw, 8.5rem);
+  }
+
+  .name .first {
+    color: var(--color-fuchsia);
+  }
+
+  .name .last {
+    color: var(--color-fuchsia);
   }
 
   .tagline {
-    font-size: 1.25rem;
-    color: #ccc;
-    max-width: 40rem;
+    margin: 1.5rem 0 0.25rem;
+    font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+    color: #dcdcdc;
+    max-width: 34rem;
   }
 
-  .focus-list {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .focus-list li {
-    background-color: #151515;
-    border-left: 3px solid var(--color-fuchsia);
-    padding: 0.75rem 1rem;
+  .dept {
+    margin: 0;
     font-size: 0.95rem;
+    color: #888;
+    letter-spacing: 0.01em;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #777;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+
+  .scroll-hint .arrow {
+    display: inline-block;
+    animation: bob 1.8s ease-in-out infinite;
+  }
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-hint .arrow {
+      animation: none;
+    }
+  }
+
+  /* --- Content sections --- */
+  .content-section {
+    position: relative;
+    z-index: 2;
+    max-width: 40rem;
+    margin-top: 18vh;
+    padding: 2.5rem 0;
+    background: linear-gradient(90deg, rgba(10,10,10,0.98), rgba(10,10,10,0.92) 75%, rgba(10,10,10,0));
+    opacity: 0.001;
+    transform: translateY(14vh);
+    transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.2, 0.75, 0.2, 1);
+  }
+
+  .content-section.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .about {
+    margin-top: -3vh;
+    padding-top: 18vh;
+  }
+
+  .content-section > p {
+    color: #ccc;
+    line-height: 1.6;
+  }
+
+  .timeline {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 1rem;
+    border-left: 3px solid var(--color-fuchsia);
+    padding: 0.75rem 0 0.75rem 1.25rem;
+    background-color: #131313;
+  }
+
+  .timeline-period {
+    color: #888;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    padding-top: 0.15rem;
+  }
+
+  .timeline-body h3 {
+    font-size: 1.05rem;
+    margin: 0 0 0.2rem;
+  }
+
+  .timeline-org {
+    margin: 0 0 0.35rem;
+    color: var(--color-fuchsia-pale);
+    font-size: 0.85rem;
+  }
+
+  .timeline-detail {
+    margin: 0;
+    color: #aaa;
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
 
   .cta {
-    margin-top: 3rem;
+    margin-top: 1rem;
     padding-top: 1.5rem;
     border-top: 1px solid #222;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .content-section {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .timeline-item {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+  }
 </style>
+
+<script>
+  // --- Hero fade + rising content ---
+  const heroContent = document.getElementById('hero-content');
+  const scrollHint = document.getElementById('scroll-hint');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const contentSections = Array.from(document.querySelectorAll<HTMLElement>('.content-section'));
+
+  function updateHero() {
+    const vh = window.innerHeight;
+    const progress = Math.min(window.scrollY / (vh * 0.72), 1);
+    if (heroContent) {
+      heroContent.style.opacity = String(1 - progress);
+      if (!reduceMotion) heroContent.style.transform = `translate3d(0, ${progress * -18}vh, 0)`;
+    }
+    if (scrollHint) scrollHint.style.opacity = String(Math.max(0, 1 - progress * 3));
+  }
+
+  window.addEventListener('scroll', updateHero, { passive: true });
+  updateHero();
+
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('is-visible');
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    contentSections.forEach((section) => observer.observe(section));
+  } else {
+    contentSections.forEach((section) => section.classList.add('is-visible'));
+  }
+
+  // --- Viscous fuchsia cursor particles ---
+  const canvas = document.getElementById('particle-canvas') as HTMLCanvasElement | null;
+  const ctx = canvas?.getContext('2d') ?? null;
+
+  if (canvas && ctx) {
+    type Particle = {
+      x: number; y: number; vx: number; vy: number;
+      r: number; life: number; maxLife: number; color: string;
+      wobble: number; seed: number;
+    };
+
+    let particles: Particle[] = [];
+    let cursorX = window.innerWidth / 2;
+    let cursorY = window.innerHeight / 2;
+    let previousX = cursorX;
+    let previousY = cursorY;
+    let running = window.scrollY < 12;
+    const colors = ['#d6006c', '#ff4fa3', '#ff85c2'];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function setRunning() {
+      running = window.scrollY < 12;
+      if (!running) particles.length = 0;
+    }
+    window.addEventListener('scroll', setRunning, { passive: true });
+
+    function spawn(x: number, y: number) {
+      if (!running) return;
+      const dx = x - previousX;
+      const dy = y - previousY;
+      const speed = Math.min(Math.hypot(dx, dy), 34);
+      const count = Math.min(8, 3 + Math.floor(speed / 7));
+
+      for (let i = 0; i < count; i++) {
+        const angle = Math.atan2(dy, dx) + Math.PI + (Math.random() - 0.5) * 0.9;
+        const force = 0.35 + Math.random() * 1.2 + speed * 0.035;
+        const maxLife = 90 + Math.random() * 70;
+        particles.push({
+          x: x - dx * Math.random() * 0.5,
+          y: y - dy * Math.random() * 0.5,
+          vx: Math.cos(angle) * force,
+          vy: Math.sin(angle) * force,
+          r: 1.4 + Math.random() * 3.4,
+          life: maxLife,
+          maxLife,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          wobble: 0.015 + Math.random() * 0.02,
+          seed: Math.random() * Math.PI * 2,
+        });
+      }
+
+      if (particles.length > 900) particles.splice(0, particles.length - 900);
+      previousX = x;
+      previousY = y;
+    }
+
+    function onMove(e: MouseEvent | TouchEvent) {
+      const point = 'touches' in e ? e.touches[0] : e;
+      if (!point) return;
+      cursorX = point.clientX;
+      cursorY = point.clientY;
+      spawn(cursorX, cursorY);
+    }
+
+    if (!reduceMotion) {
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, { passive: true });
+    }
+
+    function tick(time: number) {
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const p of particles) {
+        // Strong drag gives the trail a slow, honey-like quality.
+        p.vx *= 0.965;
+        p.vy *= 0.965;
+        const dx = cursorX - p.x;
+        const dy = cursorY - p.y;
+        p.vx += dx * 0.00045;
+        p.vy += dy * 0.00045;
+        p.vx += Math.cos(time * p.wobble + p.seed) * 0.008;
+        p.vy += Math.sin(time * p.wobble + p.seed) * 0.008;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 1;
+
+        const life = Math.max(p.life / p.maxLife, 0);
+        ctx.globalAlpha = life * 0.85;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(p.r * (0.55 + life * 0.65), 0), 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = 1;
+      particles = particles.filter((p) => p.life > 0);
+      requestAnimationFrame(tick);
+    }
+
+    if (!reduceMotion) requestAnimationFrame(tick);
+  }
+</script>
