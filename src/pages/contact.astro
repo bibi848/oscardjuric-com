@@ -2,15 +2,15 @@
 import Layout from '../layouts/Layout.astro';
 
 const links = [
-  { href: "mailto:oscar.djuric@gmail.com", value: "oscar.djuric@gmail.com" },
-  { href: "https://www.linkedin.com/in/oscar-djuric/", value: "LinkedIn" },
-  { href: "https://github.com/bibi848", value: "GitHub" },
-  { href: "/CV_Oscar_Djuric.pdf", value: "Download CV", download: "CV_Oscar_Djuric.pdf" }
+  { label: "Email", href: "mailto:oscar.djuric@gmail.com", value: "oscar.djuric@gmail.com" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/oscar-djuric/", value: "LinkedIn" },
+  { label: "GitHub", href: "https://github.com/bibi848", value: "GitHub" },
+  { label: "CV", href: "/CV_Oscar_Djuric.pdf", value: "Download CV", download: "CV_Oscar_Djuric.pdf" }
 ];
 ---
 
 <Layout title="Contact | Oscar Djuric">
-  <h1>Contact</h1>
+  <h1 class="page-title">Contact</h1>
   <p class="intro">
     Let's talk.
   </p>

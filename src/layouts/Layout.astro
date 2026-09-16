@@ -17,12 +17,6 @@ const navLinks = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body>
     <header class="topbar">
@@ -106,8 +100,8 @@ const navLinks = [
     --color-fuchsia: #d6006c;
     --color-fuchsia-soft: #ff4fa3;
     --color-white: #ffffff;
-    --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-    --font-body: Inter, system-ui, -apple-system, sans-serif;
+    --font-display: 'Helvetica Neue', Helvetica, Arial, system-ui, -apple-system, sans-serif;
+    --font-body: 'Helvetica Neue', Helvetica, Arial, system-ui, -apple-system, sans-serif;
   }
 
   * {
@@ -284,6 +278,11 @@ const navLinks = [
 
   .accent {
     color: var(--color-fuchsia);
+  }
+
+  .page-title {
+    color: var(--color-fuchsia);
+    font-weight: 700;
   }
 
   footer {

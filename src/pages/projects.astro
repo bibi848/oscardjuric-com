@@ -2,21 +2,133 @@
 import Layout from '../layouts/Layout.astro';
 
 const projects = [
-  { name: "Personal Website", desc: "Built with Astro and hosted on Cloudflare." },
-  { name: "gD-algo", desc: "Investigating historical financial data." },
-  { name: "University Master's Project", desc: "Development of an Automated Ultrasonic Scanning Gantry for Investigating Metal Microstructure." },
-  { name: "Raytracing", desc: "Custom raytracing engine and simulating the soiling effect on Linear Fresnel Reflectors." },
-  { name: "Proxmox Server", desc: ""},
+  {
+    name: "University Master's Project",
+    tagline: "Development of an Automated Ultrasonic Scanning Gantry for Investigating Metal Microstructure",
+    description:
+      "Bechtel Industrial Project Group Prize 2026 (highest average mark for all master's projects).",
+    links: [
+      { label: "View on GitHub", href: "https://github.com/bibi848/signal-processing-G2066" },
+      { label: "Download Final Report", href: "/reports/ultrasonic-scanning-oscar-djuric.pdf", download: true },
+    ],
+  },
+  {
+    name: "Raytracing",
+    tagline: "Linear Fresnel Reflector soiling assessment & a custom C++ raytracing engine",
+    description:
+      "During my year abroad in Brisbane, Australia, I worked with the Queensland University of Technology as a Research Intern. I worked on developing raytracing models for Linear Fresnel Reflectors in concentrated solar power plants. My findings were delivered at SolarPACES 2025 in Spain in the presentation \"Ray Tracing Enhanced Soiling Assessment of LFR Systems for Industrial Heat Applications.\" During this time I also built my own raytracing engine in C++.",
+    links: [
+      { label: "SolarPACES Work on GitHub", href: "https://github.com/bibi848/Raytracing-w-Soiling" },
+      { label: "Raytracing Engine on GitHub", href: "https://github.com/bibi848/Raytracing-Engine" },
+    ],
+  },
+  {
+    name: "gD-algo",
+    tagline: "A financial programming project repository",
+    description:
+      "I explore historical stock and crypto data, using the Polymarket API, option pricing, and connecting directly to the Kraken crypto exchange.",
+    links: [
+      { label: "View on GitHub", href: "https://github.com/bibi848/gD-algo" },
+    ],
+  },
+  {
+    name: "This Website!",
+    tagline: "Built with Astro, hosted on a Cloudflare Worker",
+    description: "The site you're looking at right now.",
+    links: [
+      { label: "Source on GitHub", href: "https://github.com/bibi848/oscardjuric-com" },
+    ],
+  },
+  {
+    name: "Proxmox Server",
+    tagline: "A fully wireless, self-hosted home server",
+    description:
+      "I have set up a Proxmox home server where I self-host various applications using LXCs and VMs. The server is entirely wireless by using WDS bridging on a separate router to connect to my home router.",
+    links: [],
+  },
 ];
 ---
 
 <Layout title="Projects | Oscar Djuric">
-  <h1>Projects</h1>
-  
-  {projects.map((project) => (
-    <div style="margin-bottom: 1.5rem;">
-      <h3>{project.name}</h3>
-      <p>{project.desc}</p>
-    </div>
-  ))}
+  <h1 class="page-title">Projects</h1>
+
+  <div class="project-list">
+    {projects.map((project) => (
+      <article class="project-card">
+        <h2 class="project-name">{project.name}</h2>
+        {project.tagline && <p class="project-tagline">{project.tagline}</p>}
+        {project.description && <p class="project-desc">{project.description}</p>}
+        {project.links.length > 0 && (
+          <div class="project-links">
+            {project.links.map((link) => (
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                download={link.download ? true : undefined}
+                class="project-link"
+              >
+                {link.label} &rarr;
+              </a>
+            ))}
+          </div>
+        )}
+      </article>
+    ))}
+  </div>
 </Layout>
+
+<style>
+  .project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    margin-top: 2rem;
+  }
+
+  .project-card {
+    background-color: #141414;
+    border: 1px solid #262626;
+    border-left: 3px solid var(--color-fuchsia);
+    border-radius: 10px;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .project-name {
+    margin: 0 0 0.3rem;
+    font-size: 1.25rem;
+    color: var(--color-white);
+  }
+
+  .project-tagline {
+    margin: 0 0 0.75rem;
+    color: var(--color-fuchsia-soft);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .project-desc {
+    margin: 0;
+    color: #ccc;
+    line-height: 1.6;
+  }
+
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1.1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #262626;
+  }
+
+  .project-link {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .project-link:hover {
+    text-decoration: underline;
+  }
+</style>

@@ -9,7 +9,7 @@ const education = [
     details: [
       'Novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters.',
       'Industrial partners: McLaren F1, Rolls-Royce, and UKAEA.',
-      'Contributing towards the development of Nektar++.',
+      'Contributing towards the development of <a href="https://www.nektar.info/" target="_blank" rel="noopener noreferrer">Nektar++</a>.',
     ],
   },
   {
@@ -93,7 +93,7 @@ const experience = [
       <h2>About</h2>
       <p>
         I'm a PhD researcher working on high-performance computing methods for
-        aeronautical simulations, based in the SherwinLab at Imperial College London. My work focuses on novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters, closely partnering with McLaren F1, Rolls-Royce, and UKAEA. I specialise in C++, Python, and building data-driven engineering solutions that scale.
+        aeronautical simulations, based in the SherwinLab at Imperial College London. My work focuses on novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters, partnering with McLaren F1, Rolls-Royce, and UKAEA. I specialise in C++, Python, and data-driven engineering solutions.
       </p>
     </section>
 
@@ -108,7 +108,7 @@ const experience = [
               <p class="timeline-org">{item.org}</p>
               <ul class="timeline-details">
                 {item.details.map((point) => (
-                  <li>{point}</li>
+                  <li set:html={point} />
                 ))}
               </ul>
             </div>
@@ -138,6 +138,13 @@ const experience = [
     </section>
 
     <section class="content-section cta">
+      <h2>See My Projects</h2>
+      <p>
+        Check out what I've worked on. <a href="/projects">View projects</a>
+      </p>
+    </section>
+
+    <section class="content-section cta">
       <h2>Let's Connect</h2>
       <p>
         Want to work together? <a href="/contact">Get in touch</a>
@@ -156,6 +163,7 @@ const experience = [
     z-index: 0;
     pointer-events: none;
     display: block;
+    transition: opacity 0.15s linear;
   }
 
   .hero {
@@ -176,7 +184,7 @@ const experience = [
     }
 
   .hero-content {
-      pointer-events: auto; /* Restores interactivity for text/links inside hero */
+      pointer-events: auto;
       will-change: opacity;
       max-width: 72rem;
     }
@@ -239,7 +247,7 @@ const experience = [
   .page-wrapper {
     position: relative;
     z-index: 2;
-    margin-top: 92vh;
+    margin-top: 80vh;
     background: rgba(10, 10, 10, 0);
     padding: 4rem 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -380,6 +388,15 @@ const experience = [
   const canvas = document.getElementById('particle-canvas') as HTMLCanvasElement | null;
   const ctx = canvas?.getContext('2d') ?? null;
 
+  function updateCanvasFade() {
+    if (!canvas) return;
+    const vh = window.innerHeight;
+    const progress = Math.min(window.scrollY / (vh * 0.72), 1);
+    canvas.style.opacity = String(1 - progress);
+  }
+  window.addEventListener('scroll', updateCanvasFade, { passive: true });
+  updateCanvasFade();
+
   if (canvas && ctx) {
     type Particle = {
       x: number; y: number; vx: number; vy: number;
@@ -404,7 +421,6 @@ const experience = [
 
     function setRunning() {
       running = window.scrollY < 12;
-      if (!running) particles.length = 0;
     }
     window.addEventListener('scroll', setRunning, { passive: true });
 
@@ -458,10 +474,6 @@ const experience = [
       for (const p of particles) {
         p.vx *= 0.965;
         p.vy *= 0.965;
-        const dx = cursorX - p.x;
-        const dy = cursorY - p.y;
-        p.vx += dx * 0.00045;
-        p.vy += dy * 0.00045;
         p.vx += Math.cos(time * p.wobble + p.seed) * 0.008;
         p.vy += Math.sin(time * p.wobble + p.seed) * 0.008;
         p.x += p.vx;
