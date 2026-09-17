@@ -3,7 +3,6 @@ import Layout from '../layouts/Layout.astro';
 import CursorEye from '../components/CursorEye.astro';
 
 // Lightweight preview data for the homepage — date + title only.
-// Full details live on the /experience page (src/pages/experience.astro).
 const educationPreview = [
   { period: '10/2026 – Present', title: 'PhD, Computational Engineering' },
   { period: '09/2022 – 06/2026', title: 'MEng, Mechanical Engineering' },
@@ -29,7 +28,7 @@ const projectPreview = [
 
   <section class="hero">
     <div class="hero-content" id="hero-content">
-      <h1 class="name">
+      <h1 class="name dither-text dither-name" data-dither-text="OSCAR DJURIC">
         <span class="first">OSCAR</span>
         <span class="last">DJURIC</span>
       </h1>
@@ -123,11 +122,11 @@ const projectPreview = [
       width: 100%;
       z-index: 1;
       height: 100svh;
-      padding: 76px 1.5rem 0;
+      padding: 0px 1.5rem 200;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      justify-content: center;
+      justify-content: flex-start;
       background: transparent;
       overflow: hidden;
       pointer-events: none;
@@ -141,6 +140,7 @@ const projectPreview = [
     }
 
   .name {
+    position: relative;
     font-family: var(--font-display);
     font-weight: 700;
     line-height: 0.85;
@@ -153,10 +153,18 @@ const projectPreview = [
 
   .name .first,
   .name .last {
-    color: transparent;
-    background: radial-gradient(circle, var(--color-fuchsia) 0 1px, transparent 1.2px) 0 0 / 3px 3px;
-    -webkit-background-clip: text;
-    background-clip: text;
+    color: var(--color-fuchsia);
+    transition: opacity 0.2s ease;
+  }
+
+  .dither-text-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    image-rendering: pixelated;
   }
 
   .tagline {
@@ -312,7 +320,7 @@ const projectPreview = [
   }
 
   .cta {
-    margin-bottom: 1rem;
+    margin: 0 0 1rem;
     padding: 1.5rem 1.75rem;
   }
 
@@ -330,7 +338,7 @@ const projectPreview = [
     z-index: 1;
   }
 
-  .projects-preview { margin-bottom: 4rem; }
+  .projects-preview { margin-bottom: 2.2rem; }
 
   .project-preview-list {
     display: flex;
@@ -365,19 +373,22 @@ const projectPreview = [
 
   .frame-particle {
     position: absolute;
-    width: 2px;
-    height: 2px;
+    width: var(--size, 2px);
+    height: var(--size, 2px);
+    border-radius: 50%;
     background: var(--color-fuchsia);
+    box-shadow: 0 0 5px rgba(175, 74, 90, 0.35);
     opacity: 0;
     animation: escape-frame var(--life) linear infinite;
     animation-delay: var(--delay);
+    will-change: transform, opacity;
   }
 
   @keyframes escape-frame {
-    0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
-    12% { opacity: 0.75; }
-    75% { opacity: 0.25; }
-    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+    0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.25); }
+    10% { opacity: 0.85; }
+    48% { opacity: 0.5; }
+    100% { opacity: 0; transform: translate3d(var(--dx), var(--dy), 0) scale(0.05); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -600,4 +611,184 @@ const projectPreview = [
 
     if (!reduceMotion) requestAnimationFrame(tick);
   }
+
+  // --- Typewriter caption ---
+  const typingLine = document.getElementById('typing-line');
+  const captions = [
+    'PhD @ Imperial College London',
+    'Mechanical Engineer / HPC Researcher',
+    'Computational Engineering / Nektar++'
+  ];
+  
+  if (typingLine) {
+    let captionIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+
+    const typeLoop = () => {
+      if (reduceMotion) {
+        typingLine.textContent = captions[0];
+        return;
+      }
+
+      const current = captions[captionIndex];
+      charIndex += deleting ? -1 : 1;
+      typingLine.textContent = current.slice(0, charIndex);
+
+      let delay = deleting ? 35 : 65;
+      if (!deleting && charIndex === current.length) {
+        deleting = true;
+        delay = 1900;
+      } else if (deleting && charIndex === 0) {
+        deleting = false;
+        captionIndex = (captionIndex + 1) % captions.length;
+        delay = 350;
+      }
+
+      window.setTimeout(typeLoop, delay);
+    };
+
+    typeLoop();
+  }
+
+  // --- Dithered hero name ---
+  function renderDitherText(element: HTMLElement) {
+    if (!DITHER_ENABLED) return;
+    const text = element.dataset.ditherText || element.textContent?.trim() || '';
+    if (!text) return;
+
+    const rect = element.getBoundingClientRect();
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    const canvas = document.createElement('canvas');
+    canvas.className = 'dither-text-canvas';
+    canvas.width = Math.ceil(rect.width * scale);
+    canvas.height = Math.ceil(rect.height * scale);
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+    canvas.setAttribute('aria-hidden', 'true');
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(scale, scale);
+    ctx.font = getComputedStyle(element).font;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    const computed = getComputedStyle(element);
+    const lineHeight = parseFloat(computed.lineHeight) || rect.height;
+    const fontSize = parseFloat(computed.fontSize) || 96;
+    const lines = text.split(' ');
+    // Preserve the existing two-line visual layout.
+    const lineTexts = element.classList.contains('dither-name') && lines.length === 2 ? lines : [text];
+    const firstWidth = ctx.measureText(lineTexts[0]).width;
+    const secondY = lineHeight * 0.88;
+    const density = 0.72;
+
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    for (let line = 0; line < lineTexts.length; line++) {
+      const y = line === 0 ? 0 : secondY;
+      const metrics = ctx.measureText(lineTexts[line]);
+      const width = metrics.width + 4;
+      const h = Math.ceil(fontSize * 1.05);
+      const pixels = ctx.getImageData(0, 0, 1, 1);
+
+      // Render into a temporary mask so every letter edge can dissolve.
+      const mask = document.createElement('canvas');
+      mask.width = Math.ceil(width);
+      mask.height = h;
+      const m = mask.getContext('2d');
+      if (!m) continue;
+      m.font = computed.font;
+      m.textBaseline = 'top';
+      m.fillStyle = '#fff';
+      m.fillText(lineTexts[line], 0, 0);
+      const data = m.getImageData(0, 0, mask.width, mask.height).data;
+
+      for (let py = 0; py < mask.height; py += 2) {
+        for (let px = 0; px < mask.width; px += 2) {
+          const alpha = data[(py * mask.width + px) * 4 + 3] / 255;
+          if (alpha <= 0) continue;
+          const edgeFade = Math.min(1, alpha * 1.25);
+          const threshold = BAYER4[(py / 2) % 4][(px / 2) % 4];
+          const jitter = ((Math.sin(px * 12.7 + py * 4.1) + 1) * 0.5) * 0.22;
+          if (edgeFade * density > threshold - jitter) {
+            ctx.fillStyle = '#af4a5a';
+            ctx.fillRect(px, y + py, 2, 2);
+          }
+        }
+      }
+    }
+
+    element.querySelectorAll(':scope > .first, :scope > .last').forEach((child) => {
+      (child as HTMLElement).style.visibility = 'hidden';
+    });
+    element.appendChild(canvas);
+  }
+
+  const ditherName = document.querySelector<HTMLElement>('.dither-name');
+  if (ditherName) {
+    const render = () => {
+      ditherName.querySelector('.dither-text-canvas')?.remove();
+      ditherName.querySelectorAll(':scope > .first, :scope > .last').forEach((child) => {
+        (child as HTMLElement).style.visibility = 'visible';
+      });
+      renderDitherText(ditherName);
+    };
+    if (document.fonts?.ready) document.fonts.ready.then(render); else render();
+    window.addEventListener('resize', render);
+  }
+
+  // --- Organic particles escaping every framed section ---
+  const frameSpeed = { value: 0 };
+  let lastScrollY = window.scrollY;
+  let lastScrollTime = performance.now();
+
+  function updateScrollSpeed() {
+    const now = performance.now();
+    const dt = Math.max(now - lastScrollTime, 16);
+    frameSpeed.value = Math.min(Math.abs(window.scrollY - lastScrollY) / dt * 16, 4);
+    lastScrollY = window.scrollY;
+    lastScrollTime = now;
+  }
+  window.addEventListener('scroll', updateScrollSpeed, { passive: true });
+
+  function seedFrameParticles(container: HTMLElement) {
+    const amount = 44;
+    for (let i = 0; i < amount; i++) {
+      const p = document.createElement('span');
+      p.className = 'frame-particle';
+      const edge = Math.floor(Math.random() * 4);
+      const along = Math.random() * 100;
+      let x = along, y = along;
+      if (edge === 0) { x = along; y = 0; }
+      if (edge === 1) { x = 100; y = along; }
+      if (edge === 2) { x = along; y = 100; }
+      if (edge === 3) { x = 0; y = along; }
+      const outward = 8 + Math.random() * 34;
+      const angle = Math.random() * Math.PI * 2;
+      p.style.left = `${x}%`;
+      p.style.top = `${y}%`;
+      p.style.setProperty('--dx', `${Math.cos(angle) * outward}px`);
+      p.style.setProperty('--dy', `${Math.sin(angle) * outward}px`);
+      p.style.setProperty('--size', `${1 + Math.random() * 2.2}px`);
+      p.style.setProperty('--life', `${1.8 + Math.random() * 2.4}s`);
+      p.style.setProperty('--delay', `${-Math.random() * 4}s`);
+      container.appendChild(p);
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('.frame-particles').forEach(seedFrameParticles);
+
+  // Scroll velocity temporarily accelerates the escaping particles.
+  let framePulse = 0;
+  function pulseFrameParticles() {
+    const speed = frameSpeed.value;
+    if (speed > 0.08) framePulse = Math.min(1, framePulse + speed * 0.08);
+    else framePulse *= 0.92;
+    document.querySelectorAll<HTMLElement>('.frame-particle').forEach((p) => {
+      p.style.animationDuration = `${Math.max(0.65, 3.2 - framePulse * 1.8)}s`;
+    });
+    requestAnimationFrame(pulseFrameParticles);
+  }
+  if (!reduceMotion) requestAnimationFrame(pulseFrameParticles);
 </script>

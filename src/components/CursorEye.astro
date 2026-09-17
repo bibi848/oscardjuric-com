@@ -1,10 +1,11 @@
-<div class="cursor-eye" id="cursor-eye" aria-hidden="true">
+<div class="cursor-eye" id="cursor-eye">
   <div class="eye-stack">
     <div class="eye-hole-mask" id="eye-hole-mask">
       <canvas class="eye-ball" id="eye-ball-canvas"></canvas>
     </div>
     <canvas class="eye-shell" id="eye-shell-canvas"></canvas>
   </div>
+  <div class="eye-caption" id="eye-caption">Made in Krita!</div>
 </div>
 
 <style>
@@ -15,7 +16,7 @@
     right: clamp(1rem, 5vw, 6rem);
     width: clamp(300px, 34vw, 520px);
     aspect-ratio: 680 / 580;
-    pointer-events: none;
+    pointer-events: auto;
     will-change: opacity;
   }
 
@@ -65,6 +66,27 @@
   /* The socket sits over the eyeball and masks its edges. */
   .eye-shell {
     z-index: 2;
+    pointer-events: none;
+  }
+
+  .eye-caption {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 0.65rem);
+    transform: translate(-50%, -4px);
+    color: #777;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.3s ease;
+  }
+
+  .cursor-eye:hover .eye-caption {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 
   @media (max-width: 1099px), (pointer: coarse) {

@@ -18,9 +18,13 @@ const navLinks = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Asimovian&display=swap" rel="stylesheet" />
   </head>
   <body>
     <header class="topbar">
+      <canvas id="topbar-canvas"></canvas>
       <a class="brand" href="/">Oscar Djuric</a>
 
       <button
@@ -54,6 +58,7 @@ const navLinks = [
     </footer>
 
     <script>
+      // Navigation Menu Controls
       const toggle = document.getElementById("menu-toggle");
       const menu = document.getElementById("squircle-menu");
 
@@ -91,6 +96,113 @@ const navLinks = [
       menu?.querySelectorAll("a").forEach((a) => {
         a.addEventListener("click", closeMenu);
       });
+
+    // --- Topbar Canvas Particle Rain & Dither Engine ---
+    const canvas = document.getElementById("topbar-canvas") as HTMLCanvasElement;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      const HEADER_HEIGHT = 50; 
+      const TRANSITION_HEIGHT = 14; // Dither transition zone at the bar's edge
+      const DITHER_HEIGHT = 90;    // Generous height to prevent bottom clipping
+    
+      // 4x4 Bayer Matrix for a seamless threshold transition on the edge
+      const BAYER4 = [
+        [0, 8, 2, 10],
+        [12, 4, 14, 6],
+        [3, 11, 1, 9],
+        [15, 7, 13, 5],
+      ].map((row) => row.map((v) => (v + 0.5) / 16));
+    
+      interface Particle {
+        x: number;
+        y: number;
+        size: number;
+        vy: number;
+        vx: number;
+        alpha: number;
+        decay: number;
+      }
+    
+      let particles: Particle[] = [];
+    
+      const resizeCanvas = () => {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const width = window.innerWidth;
+        const totalHeight = HEADER_HEIGHT + DITHER_HEIGHT;
+        
+        canvas.width = width * dpr;
+        canvas.height = totalHeight * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${totalHeight}px`;
+        if (ctx) ctx.scale(dpr, dpr);
+      };
+    
+      const spawnParticles = () => {
+        const count = Math.floor(window.innerWidth / 18);
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.floor(Math.random() * window.innerWidth),
+            // Spawn slightly inside the transition zone for a seamless origin
+            y: HEADER_HEIGHT - Math.random() * TRANSITION_HEIGHT,
+            size: Math.random() > 0.6 ? 2 : 3,
+            vy: 0.08 + Math.random() * 0.18, // Slow downward drift
+            vx: (Math.random() - 0.5) * 0.1,
+            alpha: 0.7 + Math.random() * 0.3,
+            decay: 0.02 + Math.random() * 0.025, // Quick fade
+          });
+        }
+      };
+    
+      const render = () => {
+        if (!ctx) return;
+        const width = window.innerWidth;
+        const totalHeight = HEADER_HEIGHT + DITHER_HEIGHT;
+      
+        ctx.clearRect(0, 0, width, totalHeight);
+      
+        // 1. Solid Top Block
+        ctx.fillStyle = "#af4a5a";
+        ctx.fillRect(0, 0, width, HEADER_HEIGHT - TRANSITION_HEIGHT);
+      
+        // 2. Bayer Dithered Edge Transition (Blends the solid bar into particles)
+        for (let py = HEADER_HEIGHT - TRANSITION_HEIGHT; py < HEADER_HEIGHT; py += 2) {
+          const progress = (py - (HEADER_HEIGHT - TRANSITION_HEIGHT)) / TRANSITION_HEIGHT;
+          const threshold = 1 - progress;
+        
+          for (let px = 0; px < width; px += 2) {
+            const matrixVal = BAYER4[Math.floor(py / 2) % 4][Math.floor(px / 2) % 4];
+            if (threshold > matrixVal) {
+              ctx.fillRect(px, py, 2, 2);
+            }
+          }
+        }
+      
+        // 3. Floating Dither Particles
+        if (Math.random() < 0.5) spawnParticles();
+      
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.y += p.vy;
+          p.x += p.vx;
+          p.alpha -= p.decay;
+        
+          // Clean removal before reaching bottom edge
+          if (p.alpha <= 0 || p.y >= totalHeight - 2) {
+            particles.splice(i, 1);
+            continue;
+          }
+        
+          ctx.fillStyle = `rgba(175, 74, 90, ${Math.max(0, p.alpha)})`;
+          ctx.fillRect(Math.floor(p.x), Math.floor(p.y), p.size, p.size);
+        }
+      
+        requestAnimationFrame(render);
+      };
+    
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+      render();
+    }
     </script>
   </body>
 </html>
@@ -101,7 +213,7 @@ const navLinks = [
     --color-fuchsia: #af4a5a;
     --color-fuchsia-soft: #af4a5a;
     --color-white: #e6d9e9;
-    --font-display: 'Helvetica Neue', Helvetica, Arial, system-ui, -apple-system, sans-serif;
+    --font-display: 'Asimovian', 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
     --font-body: 'Helvetica Neue', Helvetica, Arial, system-ui, -apple-system, sans-serif;
   }
 
@@ -121,39 +233,27 @@ const navLinks = [
     font-family: var(--font-body);
   }
 
-  /* --- Site-wide dither grain ---
-     A cheap SVG feTurbulence noise tile, thresholded into a fine
-     black/white speckle, laid over the whole page at very low opacity
-     with a "overlay" blend. This is what gives everything (not just
-     the eye) a slightly gritty, halftone/CRT edge instead of the flat
-     vector look. Fixed + pointer-events:none so it never affects
-     layout, scrolling or clicks. */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 300;
-    pointer-events: none;
-    opacity: 0.05;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 9 -4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 180px 180px;
-  }
-
   /* --- Top Bar --- */
   .topbar {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 76px;
+    height: 58px;
     z-index: 150;
     display: flex;
     align-items: center;
     padding: 0 1.5rem;
-    background-color: var(--color-fuchsia);
-    background-image: radial-gradient(rgba(10, 10, 10, 0.22) 0.8px, transparent 0.9px);
-    background-size: 8px 8px;
+    background: transparent;
+  }
+
+  #topbar-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: -1;
+    image-rendering: pixelated;
   }
 
   .brand {
@@ -164,18 +264,10 @@ const navLinks = [
     letter-spacing: 0.03em;
     text-decoration: none;
     text-transform: uppercase;
+    z-index: 160;
   }
 
-  .topbar-mark {
-    color: var(--color-black);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    opacity: 0.7;
-    margin-left: 1.5rem;
-  }
-
-  /* --- Simple Clean Hamburger Toggle --- */
+  /* --- Hamburger Toggle --- */
   .menu-toggle {
     margin-left: auto;
     background: transparent;
@@ -212,7 +304,7 @@ const navLinks = [
   /* --- Vertical Squircle Bubbles Menu --- */
   .squircle-menu {
     position: fixed;
-    top: 86px;
+    top: 70px;
     right: 1.5rem;
     z-index: 200;
     display: flex;
@@ -262,14 +354,7 @@ const navLinks = [
     transform: translateY(-2px) scale(1.03);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .squircle,
-    .menu-toggle .line {
-      transition-duration: 0.01ms !important;
-    }
-  }
-
-  /* --- Main Content --- */
+  /* --- Main Content Layout --- */
   main {
     max-width: 1100px;
     margin: 0 auto;
@@ -297,15 +382,6 @@ const navLinks = [
 
   a {
     color: var(--color-fuchsia-soft);
-  }
-
-  .accent {
-    color: var(--color-fuchsia);
-  }
-
-  .page-title {
-    color: var(--color-fuchsia);
-    font-weight: 700;
   }
 
   footer {

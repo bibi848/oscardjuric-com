@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
+/*Do not add labels to this!*/
 const links = [
   { href: "mailto:oscar.djuric@gmail.com", value: "oscar.djuric@gmail.com" },
   { href: "https://www.linkedin.com/in/oscar-djuric/", value: "LinkedIn" },
@@ -50,12 +51,26 @@ const links = [
   }
 
   .contact-list li {
+    position: relative;
+    overflow: visible;
     background-color: #151515;
     border-left: 3px solid var(--color-fuchsia);
     padding: 1rem 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+  }
+
+  .contact-list li::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    pointer-events: none;
+    opacity: 0.14;
+    background-image: radial-gradient(circle, var(--color-fuchsia) 0 0.8px, transparent 1px);
+    background-size: 8px 8px;
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
   }
 
   .label {
