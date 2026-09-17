@@ -16,6 +16,12 @@ const experiencePreview = [
   { period: '07/2025 – 09/2025', title: 'Data & Analytics Intern, Salute' },
   { period: '11/2024 – 04/2025', title: 'Engineering Research Intern, QUT' },
 ];
+
+const projectPreview = [
+  { name: "University Master's Project", tagline: 'Automated ultrasonic scanning & signal processing' },
+  { name: 'Raytracing', tagline: 'C++ raytracing engine for concentrated solar power' },
+  { name: 'gD-algo', tagline: 'Financial programming, market data & trading systems' },
+];
 ---
 
 <Layout title="Oscar Djuric">
@@ -27,8 +33,7 @@ const experiencePreview = [
         <span class="first">OSCAR</span>
         <span class="last">DJURIC</span>
       </h1>
-      <p class="tagline">High-Performance Computing PhD student at Imperial College London</p>
-      <p class="dept">Department of Aeronautics — Nektar++</p>
+      <p class="tagline"><span id="typing-line"></span><span class="typing-cursor" aria-hidden="true">_</span></p>
     </div>
     <CursorEye />
     <div class="scroll-hint" id="scroll-hint">
@@ -72,21 +77,28 @@ const experiencePreview = [
           </ul>
         </div>
       </div>
-      <a href="/experience" class="read-more">Read more &rarr;</a>
+      <a href="/experience" class="read-more">Open full record <span>&rarr;</span></a>
+      <div class="frame-particles" aria-hidden="true"></div>
     </section>
 
-    <section class="content-section cta">
-      <h2>See My Projects</h2>
-      <p>
-        Check out what I've worked on. <a href="/projects">View projects</a>
-      </p>
+    <section class="content-section preview-block projects-preview">
+      <h2>Projects</h2>
+      <div class="project-preview-list">
+        {projectPreview.map((project) => (
+          <a href="/projects" class="project-preview-item">
+            <span class="preview-title">{project.name}</span>
+            <span class="preview-period">{project.tagline}</span>
+          </a>
+        ))}
+      </div>
+      <a href="/projects" class="read-more">View all projects <span>&rarr;</span></a>
+      <div class="frame-particles" aria-hidden="true"></div>
     </section>
 
-    <section class="content-section cta">
+    <section class="content-section cta framed-cta">
       <h2>Let's Connect</h2>
-      <p>
-        Want to work together? <a href="/contact">Get in touch</a>
-      </p>
+      <p>Want to work together? <a href="/contact">Get in touch</a></p>
+      <div class="frame-particles" aria-hidden="true"></div>
     </section>
   </div>
 </Layout>
@@ -124,7 +136,8 @@ const experiencePreview = [
   .hero-content {
       pointer-events: auto;
       will-change: opacity;
-      max-width: 72rem;
+      width: min(40rem, calc(100vw - 3rem));
+      margin-left: max(0px, calc((100vw - 1100px) / 2));
     }
 
   .name {
@@ -138,12 +151,12 @@ const experiencePreview = [
     font-size: clamp(3.25rem, 12vw, 8.5rem);
   }
 
-  .name .first {
-    color: var(--color-fuchsia);
-  }
-
+  .name .first,
   .name .last {
-    color: var(--color-fuchsia);
+    color: transparent;
+    background: radial-gradient(circle, var(--color-fuchsia) 0 1px, transparent 1.2px) 0 0 / 3px 3px;
+    -webkit-background-clip: text;
+    background-clip: text;
   }
 
   .tagline {
@@ -151,6 +164,17 @@ const experiencePreview = [
     font-size: clamp(1.05rem, 2.4vw, 1.35rem);
     color: var(--color-white);
     max-width: 34rem;
+    min-height: 1.7em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .typing-cursor {
+    color: var(--color-fuchsia);
+    animation: blink 0.85s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
   }
 
   .dept {
@@ -216,8 +240,9 @@ const experiencePreview = [
 
   /* --- Education & Experience preview block --- */
   .preview-block {
-    border: 1px solid #262626;
-    border-left: 3px solid var(--color-fuchsia);
+    position: relative;
+    overflow: visible;
+    border: 1px solid var(--color-fuchsia);
     border-radius: 10px;
     background-color: rgba(19, 19, 19, 0.8);
     padding: 1.75rem 1.75rem 1.5rem;
@@ -288,8 +313,71 @@ const experiencePreview = [
 
   .cta {
     margin-bottom: 1rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #222;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .framed-cta {
+    position: relative;
+    overflow: visible;
+    border: 1px solid var(--color-fuchsia);
+    border-radius: 10px;
+    background-color: rgba(19, 19, 19, 0.8);
+  }
+
+  .preview-block > *:not(.frame-particles),
+  .framed-cta > *:not(.frame-particles) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .projects-preview { margin-bottom: 4rem; }
+
+  .project-preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .project-preview-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid #2a2022;
+    background: rgba(10, 10, 10, 0.55);
+    text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .project-preview-item:hover {
+    border-color: var(--color-fuchsia);
+    transform: translateX(4px);
+  }
+
+  .frame-particles {
+    position: absolute;
+    inset: -8px;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 0;
+  }
+
+  .frame-particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--color-fuchsia);
+    opacity: 0;
+    animation: escape-frame var(--life) linear infinite;
+    animation-delay: var(--delay);
+  }
+
+  @keyframes escape-frame {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
+    12% { opacity: 0.75; }
+    75% { opacity: 0.25; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -304,6 +392,8 @@ const experiencePreview = [
   }
 
   @media (max-width: 560px) {
+    .hero-content { margin-left: 0; }
+
     .preview-grid {
       grid-template-columns: 1fr;
       gap: 1.25rem;
@@ -411,7 +501,7 @@ const experiencePreview = [
       for (let i = 0; i < count; i++) {
         const angle = Math.atan2(dy, dx) + Math.PI + (Math.random() - 0.5) * 0.9;
         const force = 0.35 + Math.random() * 1.2 + speed * 0.035;
-        const maxLife = 90 + Math.random() * 70;
+        const maxLife = 80 + Math.random() * 70;
         particles.push({
           x: x - dx * Math.random() * 0.5,
           y: y - dy * Math.random() * 0.5,
@@ -426,7 +516,7 @@ const experiencePreview = [
         });
       }
 
-      if (particles.length > 900) particles.splice(0, particles.length - 900);
+      if (particles.length > 1200) particles.splice(0, particles.length - 1200);
       previousX = x;
       previousY = y;
     }
