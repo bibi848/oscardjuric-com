@@ -1,0 +1,187 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const education = [
+  {
+    period: '10/2026 – Present',
+    title: 'PhD, Computational Engineering',
+    org: 'Imperial College London — Department of Aeronautics, SherwinLab',
+    details: [
+      'Novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters.',
+      'Industrial partners: McLaren F1, Rolls-Royce, and UKAEA.',
+      'Contributing towards the development of <a href="https://www.nektar.info/" target="_blank" rel="noopener noreferrer">Nektar++</a>.',
+    ],
+  },
+  {
+    period: '09/2022 – 06/2026',
+    title: 'MEng Mechanical Engineering',
+    org: 'University of Bristol',
+    details: [
+      'Mechanical Engineering Performance Prize (Valedictorian).',
+      'Bechtel Industrial Project Group Prize (Best Master\'s project).',
+      'IMechE Best Student & IMechE Best Project.',
+      'Master\'s Project: Sensing, Imaging and Signal Processing.',
+    ],
+  },
+  {
+    period: '07/2024 – 07/2025',
+    title: 'University Year Abroad',
+    org: 'Queensland University of Technology',
+    details: ['GPA: 6.875/7'],
+  },
+  {
+    period: '09/2020 – 07/2022',
+    title: 'A Levels',
+    org: 'Harris Westminster Sixth Form',
+    details: ['Physics, Chemistry, Mathematics, Further Mathematics'],
+  },
+];
+
+const experience = [
+  {
+    period: '06/2026 – 09/2026',
+    title: 'SWE Intern',
+    org: 'Cloudflare',
+    details: [
+      'Developed the Data Centre Security & Compliance Portal, a web-based tool with new automation workflows for the DCSC Team.',
+      'Designed a full Vision-Language Model Pipeline to extract text data from PDFs and PNGs running on Cloudflare hardware with asynchronous task completion.',
+    ],
+  },
+  {
+    period: '07/2025 – 09/2025',
+    title: 'Data & Analytics Intern',
+    org: 'Salute (previously Northshore)',
+    details: [
+      'Developed and automated data pipelines using Python, Power BI, and Power Automate.',
+      'Designed algorithms for automated error detection, removing the need for human data handling.',
+      'Optimised ETL workflows and transitioned systems to an ELT architecture using SQL, processing over 2 million data points per hour.',
+    ],
+  },
+  {
+    period: '11/2024 – 04/2025',
+    title: 'Concentrated Solar Power Research Intern',
+    org: 'Queensland University of Technology',
+    details: [
+      'Developed and validated ray-tracing and performance models for Linear Fresnel Reflectors (LFR).',
+      'Incorporated environmental data to achieve predictions within 1% of reference systems.',
+      'Implemented multi-threading, reducing simulation runtime by 79%.',
+    ],
+  },
+];
+---
+
+<Layout title="Experience & Education | Oscar Djuric">
+  <h1 class="page-title">Experience &amp; Education</h1>
+  <p class="page-lede">The full record — internships, research, and study.</p>
+
+  <section class="content-section">
+    <h2>Education</h2>
+    <ul class="timeline">
+      {education.map((item) => (
+        <li class="timeline-item">
+          <span class="timeline-period">{item.period}</span>
+          <div class="timeline-body">
+            <h3>{item.title}</h3>
+            <p class="timeline-org">{item.org}</p>
+            <ul class="timeline-details">
+              {item.details.map((point) => (
+                <li set:html={point} />
+              ))}
+            </ul>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="content-section">
+    <h2>Experience</h2>
+    <ul class="timeline">
+      {experience.map((item) => (
+        <li class="timeline-item">
+          <span class="timeline-period">{item.period}</span>
+          <div class="timeline-body">
+            <h3>{item.title}</h3>
+            <p class="timeline-org">{item.org}</p>
+            <ul class="timeline-details">
+              {item.details.map((point) => (
+                <li>{point}</li>
+              ))}
+            </ul>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Layout>
+
+<style>
+  .page-lede {
+    color: #999;
+    margin: 0 0 1rem;
+    max-width: 40rem;
+  }
+
+  .content-section {
+    max-width: 44rem;
+  }
+
+  .timeline {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 1rem;
+    border-left: 3px solid var(--color-fuchsia);
+    padding: 0.75rem 0 0.75rem 1.25rem;
+    background-color: rgba(19, 19, 19, 0.8);
+  }
+
+  .timeline-period {
+    color: #888;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    padding-top: 0.15rem;
+  }
+
+  .timeline-body h3 {
+    font-size: 1.05rem;
+    margin: 0 0 0.2rem;
+  }
+
+  .timeline-org {
+    margin: 0 0 0.35rem;
+    color: var(--color-fuchsia-pale);
+    font-size: 0.85rem;
+  }
+
+  .timeline-details {
+    margin: 0.5rem 0 0;
+    padding-left: 1.2rem;
+    color: var(--color-white);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .timeline-details li {
+    margin-bottom: 0.35rem;
+  }
+
+  .timeline-details li::marker {
+    color: var(--color-white);
+  }
+
+  @media (max-width: 560px) {
+    .timeline-item {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+  }
+</style>

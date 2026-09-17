@@ -1,0 +1,633 @@
+<div class="cursor-eye" id="cursor-eye" aria-hidden="true">
+  <div class="eye-stack">
+    <div class="eye-hole-mask" id="eye-hole-mask">
+      <canvas class="eye-ball" id="eye-ball-canvas"></canvas>
+    </div>
+    <canvas class="eye-shell" id="eye-shell-canvas"></canvas>
+  </div>
+</div>
+
+<style>
+  .cursor-eye {
+    position: absolute;
+    z-index: 1;
+    top: clamp(5.5rem, 13vh, 9rem);
+    right: clamp(1rem, 5vw, 6rem);
+    width: clamp(300px, 34vw, 520px);
+    aspect-ratio: 680 / 580;
+    pointer-events: none;
+    will-change: opacity;
+  }
+
+  .eye-stack {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .eye-hole-mask,
+  .eye-shell {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .eye-hole-mask {
+    z-index: 1;
+    pointer-events: none;
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+  }
+
+  .eye-ball,
+  .eye-shell {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    image-rendering: pixelated;
+    image-rendering: -webkit-optimize-contrast;
+    mix-blend-mode: screen;
+  }
+
+  /* The eyeball is physically behind the socket. */
+  .eye-ball {
+    transform: translate3d(0, 0, 0);
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
+  /* The socket sits over the eyeball and masks its edges. */
+  .eye-shell {
+    z-index: 2;
+  }
+
+  @media (max-width: 1099px), (pointer: coarse) {
+    .cursor-eye {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1400px) and (min-width: 1100px) {
+    .cursor-eye {
+      width: clamp(260px, 30vw, 400px);
+      right: clamp(0.75rem, 3vw, 2rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eye-ball {
+      transform: none !important;
+    }
+  }
+</style>
+
+<script>
+  // ===============================================================
+  // QUICK COMPARISON SWITCH
+  // true  = Bayer/halftone dithering
+  // false = normal smooth rendering, while keeping the soft fades
+  // ===============================================================
+  const DITHER_ENABLED = true;
+
+  const EYE_WORK_WIDTH = 260;
+
+  const PALETTE: [number, number, number][] = [
+    [10, 10, 10],
+    [58, 22, 32],
+    [175, 74, 90],
+    [230, 217, 233],
+  ];
+
+  function luminance(r: number, g: number, b: number) {
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+
+  const PAL_LUM = PALETTE.map(([r, g, b]) => luminance(r, g, b));
+
+  const BAYER4 = [
+    [0, 8, 2, 10],
+    [12, 4, 14, 6],
+    [3, 11, 1, 9],
+    [15, 7, 13, 5],
+  ].map((row) => row.map((v) => (v + 0.5) / 16));
+
+  function clamp01(v: number) {
+    return Math.max(0, Math.min(1, v));
+  }
+
+  function smoothstep(edge0: number, edge1: number, x: number) {
+    const t = clamp01((x - edge0) / (edge1 - edge0));
+    return t * t * (3 - 2 * t);
+  }
+
+  /*
+   * The source socket artwork reaches the PNG's rectangular bounds, so
+   * alpha-blurring alone still leaves the canvas silhouette visible.
+   * This broad elliptical/superellipse vignette makes the outer artwork
+   * dissolve into the page instead of reading as a square image.
+   *
+   * The multiplier is deliberately quite wide: the eye itself stays
+   * solid while the outer artwork gradually disappears over a large
+   * region. When dithering is enabled, this becomes a scattered field of
+   * dots rather than a smooth transparent gradient.
+   */
+  function createEnvironmentFade(w: number, h: number) {
+    const fade = new Float32Array(w * h);
+
+    const cx = w * 0.50;
+    const cy = h * 0.48;
+    const rx = w * 0.53;
+    const ry = h * 0.58;
+    const exponent = 2.3;
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const nx = Math.abs((x - cx) / rx);
+        const ny = Math.abs((y - cy) / ry);
+
+        // Superellipse distance gives a softer, less obviously circular
+        // silhouette than a normal radial gradient.
+        const distance = Math.pow(
+          Math.pow(nx, exponent) + Math.pow(ny, exponent),
+          1 / exponent
+        );
+
+        // Fully visible through the central ~75%, then dissolve broadly
+        // into the black page.
+        fade[y * w + x] =
+          smoothstep(0.95, 0.8, distance) * 255;
+      }
+    }
+
+    return fade;
+  }
+
+  function blurAlpha(alpha: Float32Array, w: number, h: number, radius: number) {
+    if (radius <= 0) return alpha;
+
+    const tmp = new Float32Array(w * h);
+    const out = new Float32Array(w * h);
+    const span = radius * 2 + 1;
+
+    for (let y = 0; y < h; y++) {
+      let sum = 0;
+
+      for (let x = -radius; x <= radius; x++) {
+        const xx = Math.min(w - 1, Math.max(0, x));
+        sum += alpha[y * w + xx];
+      }
+
+      for (let x = 0; x < w; x++) {
+        tmp[y * w + x] = sum / span;
+
+        const addX = Math.min(w - 1, x + radius + 1);
+        const remX = Math.max(0, x - radius);
+
+        sum += alpha[y * w + addX] - alpha[y * w + remX];
+      }
+    }
+
+    for (let x = 0; x < w; x++) {
+      let sum = 0;
+
+      for (let y = -radius; y <= radius; y++) {
+        const yy = Math.min(h - 1, Math.max(0, y));
+        sum += tmp[yy * w + x];
+      }
+
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = sum / span;
+
+        const addY = Math.min(h - 1, y + radius + 1);
+        const remY = Math.max(0, y - radius);
+
+        sum += tmp[addY * w + x] - tmp[remY * w + x];
+      }
+    }
+
+    return out;
+  }
+
+  /*
+   * Finds transparent regions that are ENCLOSED by the socket.
+   *
+   * The transparent background is connected to the canvas boundary.
+   * The actual eye opening is a separate enclosed transparent region.
+   * This gives us a real mask for the eyeball, so the moving eyeball
+   * can never leak around the sides of the socket.
+   */
+  function findEyeHoleMask(alpha: Uint8ClampedArray, w: number, h: number) {
+    const transparent = new Uint8Array(w * h);
+    const outside = new Uint8Array(w * h);
+    const queue = new Int32Array(w * h);
+    let head = 0;
+    let tail = 0;
+
+    for (let i = 0; i < alpha.length; i++) {
+      if (alpha[i] < 16) transparent[i] = 1;
+    }
+
+    function pushIfOutside(x: number, y: number) {
+      if (x < 0 || x >= w || y < 0 || y >= h) return;
+      const i = y * w + x;
+      if (!transparent[i] || outside[i]) return;
+      outside[i] = 1;
+      queue[tail++] = i;
+    }
+
+    for (let x = 0; x < w; x++) {
+      pushIfOutside(x, 0);
+      pushIfOutside(x, h - 1);
+    }
+
+    for (let y = 0; y < h; y++) {
+      pushIfOutside(0, y);
+      pushIfOutside(w - 1, y);
+    }
+
+    while (head < tail) {
+      const i = queue[head++];
+      const x = i % w;
+      const y = Math.floor(i / w);
+
+      pushIfOutside(x - 1, y);
+      pushIfOutside(x + 1, y);
+      pushIfOutside(x, y - 1);
+      pushIfOutside(x, y + 1);
+    }
+
+    const hole = new Float32Array(w * h);
+
+    for (let i = 0; i < hole.length; i++) {
+      if (transparent[i] && !outside[i]) {
+        hole[i] = 255;
+      }
+    }
+
+    /*
+     * A small blur creates a soft transition exactly at the socket
+     * opening. This is separate from the outer socket fade.
+     */
+    return blurAlpha(hole, w, h, 3);
+  }
+
+  function ditherImageData(
+    imageData: ImageData,
+    alphaMultiplier?: Float32Array
+  ): ImageData {
+    const { width: w, height: h, data } = imageData;
+    const count = w * h;
+
+    const srcAlpha = new Float32Array(count);
+    const gray = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+      const o = i * 4;
+      srcAlpha[i] = data[o + 3];
+      gray[i] = luminance(data[o], data[o + 1], data[o + 2]);
+    }
+
+    /*
+     * Stronger blur than before. This makes the silhouette dissolve
+     * into black rather than ending as a hard PNG boundary.
+     */
+    const softenedAlpha = blurAlpha(srcAlpha, w, h, 4);
+
+    const out = new ImageData(w, h);
+    const lastPal = PAL_LUM.length - 1;
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        const o = i * 4;
+        const threshold = BAYER4[y % 4][x % 4];
+        const l = gray[i];
+
+        let idx = 0;
+
+        if (l <= PAL_LUM[0]) {
+          idx = 0;
+        } else if (l >= PAL_LUM[lastPal]) {
+          idx = lastPal;
+        } else {
+          let lo = 0;
+
+          while (lo < lastPal - 1 && l > PAL_LUM[lo + 1]) lo++;
+
+          const frac =
+            (l - PAL_LUM[lo]) /
+            (PAL_LUM[lo + 1] - PAL_LUM[lo]);
+
+          idx = frac > threshold ? lo + 1 : lo;
+        }
+
+        const [r, g, b] = PALETTE[idx];
+
+        let alpha = softenedAlpha[i] / 255;
+
+        if (alphaMultiplier) {
+          alpha *= alphaMultiplier[i] / 255;
+        }
+
+        const alphaOn = alpha > threshold;
+        const finalAlpha = idx === 0 || !alphaOn ? 0 : 255;
+
+        out.data[o] = r;
+        out.data[o + 1] = g;
+        out.data[o + 2] = b;
+        out.data[o + 3] = finalAlpha;
+      }
+    }
+
+    return out;
+  }
+
+  function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Failed to load ${src}`));
+      img.src = src;
+    });
+  }
+
+  function drawSmoothLayer(
+    img: HTMLImageElement,
+    canvas: HTMLCanvasElement,
+    alphaMultiplier?: Float32Array
+  ) {
+    const w = EYE_WORK_WIDTH;
+    const h = Math.round(
+      w * (img.naturalHeight / img.naturalWidth || 580 / 680)
+    );
+
+    canvas.width = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+
+    if (!alphaMultiplier) return;
+
+    const image = ctx.getImageData(0, 0, w, h);
+
+    for (let i = 0; i < w * h; i++) {
+      image.data[i * 4 + 3] *= alphaMultiplier[i] / 255;
+    }
+
+    ctx.putImageData(image, 0, 0);
+  }
+
+  async function renderEye(
+    eyeballSrc: string,
+    shellSrc: string,
+    eyeballCanvas: HTMLCanvasElement,
+    shellCanvas: HTMLCanvasElement,
+    holeMaskElement: HTMLElement
+  ) {
+    const [eyeball, shell] = await Promise.all([
+      loadImage(eyeballSrc),
+      loadImage(shellSrc),
+    ]);
+
+    const w = EYE_WORK_WIDTH;
+    const h = Math.round(
+      w * (shell.naturalHeight / shell.naturalWidth || 580 / 680)
+    );
+
+    /*
+     * First get the socket's real alpha mask. The enclosed transparent
+     * component is the only area where the eyeball is allowed to exist.
+     */
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = w;
+    maskCanvas.height = h;
+
+    const maskCtx = maskCanvas.getContext('2d');
+    if (!maskCtx) return;
+
+    maskCtx.drawImage(shell, 0, 0, w, h);
+    const shellImage = maskCtx.getImageData(0, 0, w, h);
+
+    const shellAlpha = new Uint8ClampedArray(w * h);
+
+    for (let i = 0; i < w * h; i++) {
+      shellAlpha[i] = shellImage.data[i * 4 + 3];
+    }
+
+    const holeMask = findEyeHoleMask(shellAlpha, w, h);
+    const environmentFade = createEnvironmentFade(w, h);
+
+    /*
+     * Keep the hole mask fixed in place while the eyeball canvas moves
+     * underneath it. A CSS mask on the stationary wrapper means the
+     * eyeball can track the cursor without ever carrying its own clip
+     * region away from the socket.
+     */
+    const holeMaskCanvas = document.createElement('canvas');
+    holeMaskCanvas.width = w;
+    holeMaskCanvas.height = h;
+
+    const holeMaskCtx = holeMaskCanvas.getContext('2d');
+    if (!holeMaskCtx) return;
+
+    const holeMaskImage = holeMaskCtx.createImageData(w, h);
+
+    for (let i = 0; i < w * h; i++) {
+      const a = Math.round(holeMask[i]);
+      holeMaskImage.data[i * 4] = 255;
+      holeMaskImage.data[i * 4 + 1] = 255;
+      holeMaskImage.data[i * 4 + 2] = 255;
+      holeMaskImage.data[i * 4 + 3] = a;
+    }
+
+    holeMaskCtx.putImageData(holeMaskImage, 0, 0);
+
+    const holeMaskUrl = holeMaskCanvas.toDataURL('image/png');
+    holeMaskElement.style.maskImage = `url("${holeMaskUrl}")`;
+    holeMaskElement.style.webkitMaskImage = `url("${holeMaskUrl}")`;
+
+    /*
+     * The socket itself fades at its outer silhouette.
+     */
+    if (DITHER_ENABLED) {
+      shellCanvas.width = w;
+      shellCanvas.height = h;
+
+      const shellCtx = shellCanvas.getContext('2d');
+      if (!shellCtx) return;
+
+      const rawShell = shellImage;
+      const ditheredShell = ditherImageData(rawShell, environmentFade);
+
+      shellCtx.putImageData(ditheredShell, 0, 0);
+    } else {
+      drawSmoothLayer(shell, shellCanvas, environmentFade);
+    }
+
+    /*
+     * Render the moving eyeball, but multiply it by the socket-hole mask.
+     * This is the important part: moving the eyeball can no longer expose
+     * its rectangular/spherical sides outside the opening.
+     */
+    const eyeCtx = eyeballCanvas.getContext('2d');
+
+    if (!eyeCtx) return;
+
+    eyeballCanvas.width = w;
+    eyeballCanvas.height = h;
+    eyeCtx.clearRect(0, 0, w, h);
+    eyeCtx.drawImage(eyeball, 0, 0, w, h);
+
+    const rawEye = eyeCtx.getImageData(0, 0, w, h);
+
+    if (DITHER_ENABLED) {
+      const ditheredEye = ditherImageData(rawEye);
+      eyeCtx.putImageData(ditheredEye, 0, 0);
+    } else {
+      /*
+       * Smooth version: same image, with the fixed CSS mask doing the
+       * clipping while the eyeball moves.
+       */
+      eyeCtx.putImageData(rawEye, 0, 0);
+    }
+  }
+
+  const eye = document.getElementById('cursor-eye');
+  const eyeballCanvas =
+    document.getElementById('eye-ball-canvas') as HTMLCanvasElement | null;
+  const shellCanvas =
+    document.getElementById('eye-shell-canvas') as HTMLCanvasElement | null;
+  const holeMaskElement =
+    document.getElementById('eye-hole-mask') as HTMLElement | null;
+
+  if (eye && eyeballCanvas && shellCanvas && holeMaskElement) {
+    renderEye(
+      '/Images/eye-ball.png',
+      '/Images/empty-eye-transparent.png',
+      eyeballCanvas,
+      shellCanvas,
+      holeMaskElement
+    ).catch((err) => {
+      console.warn('[CursorEye] could not load eye assets:', err);
+      eye.style.display = 'none';
+    });
+
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    const desktopQuery = window.matchMedia(
+      '(min-width: 1100px) and (pointer: fine)'
+    );
+
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let animationFrame = 0;
+    let rect = eye.getBoundingClientRect();
+
+    const MAX_X_RATIO = 0.13;
+    const MAX_Y_RATIO = 0.12;
+    const FOLLOW = 0.12;
+
+    function refreshRect() {
+      rect = eye.getBoundingClientRect();
+    }
+
+    function updateTarget(clientX: number, clientY: number) {
+      if (!desktopQuery.matches || reduceMotion) return;
+
+      const eyeCenterX = rect.left + rect.width * 0.5;
+      const eyeCenterY = rect.top + rect.height * 0.47;
+
+      const dx = clientX - eyeCenterX;
+      const dy = clientY - eyeCenterY;
+      const distance = Math.hypot(dx, dy) || 1;
+
+      const directionX = dx / distance;
+      const directionY = dy / distance;
+
+      const influence = Math.min(distance / 300, 1);
+
+      targetX = directionX * rect.width * MAX_X_RATIO * influence;
+      targetY = directionY * rect.height * MAX_Y_RATIO * influence;
+    }
+
+    function onMouseMove(event: MouseEvent) {
+      updateTarget(event.clientX, event.clientY);
+    }
+
+    function animate() {
+      currentX += (targetX - currentX) * FOLLOW;
+      currentY += (targetY - currentY) * FOLLOW;
+
+      eyeballCanvas.style.transform =
+        `translate3d(${currentX}px, ${currentY}px, 0)`;
+
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    function updateVisibility() {
+      const progress = Math.min(
+        window.scrollY / (window.innerHeight * 0.72),
+        1
+      );
+
+      eye.style.opacity = String(1 - progress);
+    }
+
+    window.addEventListener('scroll', updateVisibility, { passive: true });
+
+    window.addEventListener(
+      'resize',
+      () => {
+        refreshRect();
+        updateVisibility();
+      },
+      { passive: true }
+    );
+
+    updateVisibility();
+
+    if (desktopQuery.matches && !reduceMotion) {
+      window.addEventListener('mousemove', onMouseMove, { passive: true });
+      window.addEventListener('scroll', refreshRect, { passive: true });
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    desktopQuery.addEventListener('change', (event) => {
+      if (event.matches && !reduceMotion) {
+        refreshRect();
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
+
+        if (!animationFrame) {
+          animationFrame = requestAnimationFrame(animate);
+        }
+      } else {
+        window.removeEventListener('mousemove', onMouseMove);
+
+        targetX = 0;
+        targetY = 0;
+
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = 0;
+        }
+
+        eyeballCanvas.style.transform = 'translate3d(0, 0, 0)';
+      }
+    });
+  }
+</script>

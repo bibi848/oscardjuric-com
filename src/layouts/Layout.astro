@@ -6,6 +6,7 @@ const { title } = Astro.props;
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/experience", label: "Experience" },
   { href: "/projects", label: "Projects" },
   { href: "/contact", label: "Contact" },
 ];
@@ -97,9 +98,9 @@ const navLinks = [
 <style is:global>
   :root {
     --color-black: #0a0a0a;
-    --color-fuchsia: #d6006c;
-    --color-fuchsia-soft: #ff4fa3;
-    --color-white: #ffffff;
+    --color-fuchsia: #af4a5a;
+    --color-fuchsia-soft: #af4a5a;
+    --color-white: #e6d9e9;
     --font-display: 'Helvetica Neue', Helvetica, Arial, system-ui, -apple-system, sans-serif;
     --font-body: 'Helvetica Neue', Helvetica, Arial, system-ui, -apple-system, sans-serif;
   }
@@ -118,6 +119,25 @@ const navLinks = [
     background-color: var(--color-black);
     color: var(--color-white);
     font-family: var(--font-body);
+  }
+
+  /* --- Site-wide dither grain ---
+     A cheap SVG feTurbulence noise tile, thresholded into a fine
+     black/white speckle, laid over the whole page at very low opacity
+     with a "overlay" blend. This is what gives everything (not just
+     the eye) a slightly gritty, halftone/CRT edge instead of the flat
+     vector look. Fixed + pointer-events:none so it never affects
+     layout, scrolling or clicks. */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 9 -4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
   }
 
   /* --- Top Bar --- */
