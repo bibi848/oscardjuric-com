@@ -22,6 +22,8 @@
 
   .eye-stack {
     position: relative;
+    z-index: 0;
+    isolation: isolate;
     width: 100%;
     height: 100%;
   }
@@ -67,7 +69,7 @@
   .eye-shell {
     z-index: 2;
     pointer-events: none;
-    /* transform: translate(0,0,0) */
+    transform: translateZ(0);
   }
 
   .eye-caption {
