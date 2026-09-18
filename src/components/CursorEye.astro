@@ -58,7 +58,7 @@
 
   /* The eyeball is physically behind the socket. */
   .eye-ball {
-    transform: translate3d(0, 0, 0);
+    transform: translate(0, 0);
     transform-origin: 50% 50%;
     will-change: transform;
   }
@@ -67,7 +67,7 @@
   .eye-shell {
     z-index: 2;
     pointer-events: none;
-    transform: translate(0,0,0)
+    /* transform: translate(0,0,0) */
   }
 
   .eye-caption {
@@ -597,7 +597,7 @@
       currentY += (targetY - currentY) * FOLLOW;
 
       eyeballCanvas.style.transform =
-        `translate3d(${currentX}px, ${currentY}px, 0)`;
+        `translate(${currentX}px, ${currentY}px)`;
 
       animationFrame = requestAnimationFrame(animate);
     }
@@ -649,7 +649,7 @@
           animationFrame = 0;
         }
 
-        eyeballCanvas.style.transform = 'translate3d(0, 0, 0)';
+        eyeballCanvas.style.transform = 'translate(0, 0)';
       }
     });
   }
