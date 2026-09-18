@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import CursorEye from '../components/CursorEye.astro';
+import PointingHand from '../components/PointingHand.astro';
 
 // Lightweight preview data for the homepage — date + title only.
 const educationPreview = [
@@ -100,6 +101,8 @@ const projectPreview = [
       <div class="frame-particles" aria-hidden="true"></div>
     </section>
   </div>
+
+  <PointingHand />
 </Layout>
 
 <style>
@@ -215,6 +218,13 @@ const projectPreview = [
   }
 
   .page-wrapper {
+    /* Accent colour for the framed blocks below the About section
+       (Education & Experience, Projects preview, Let's Connect).
+       Tied to the same variable the section headings (h2) use, so it
+       always matches "About", "Education & Experience", etc. Change
+       --color-fuchsia-soft in Layout.astro to move both at once. */
+    --block-accent: var(--color-fuchsia-soft);
+
     position: relative;
     z-index: 2;
     margin-top: 80vh;
@@ -242,7 +252,7 @@ const projectPreview = [
   }
 
   .content-section > p {
-    color: #ccc;
+    color: var(--color-white);
     line-height: 1.6;
   }
 
@@ -250,7 +260,7 @@ const projectPreview = [
   .preview-block {
     position: relative;
     overflow: visible;
-    border: 1px solid var(--color-fuchsia);
+    border: 1px solid var(--block-accent);
     border-radius: 10px;
     background-color: rgba(19, 19, 19, 0.8);
     padding: 1.75rem 1.75rem 1.5rem;
@@ -312,7 +322,7 @@ const projectPreview = [
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
-    color: var(--color-fuchsia-soft);
+    color: var(--block-accent);
   }
 
   .read-more:hover {
@@ -327,7 +337,7 @@ const projectPreview = [
   .framed-cta {
     position: relative;
     overflow: visible;
-    border: 1px solid var(--color-fuchsia);
+    border: 1px solid var(--block-accent);
     border-radius: 10px;
     background-color: rgba(19, 19, 19, 0.8);
   }
@@ -359,36 +369,29 @@ const projectPreview = [
   }
 
   .project-preview-item:hover {
-    border-color: var(--color-fuchsia);
+    border-color: var(--block-accent);
     transform: translateX(4px);
   }
 
+  /* Dithered pixel border + escaping particles, drawn on a canvas that
+     overlaps each block. See the "DITHERED FRAME PARAMETERS" section in
+     the script below to tune thickness, spawn rate, colour, etc. */
   .frame-particles {
     position: absolute;
-    inset: -8px;
+    inset: -46px; /* overwritten inline by JS to match FRAME_PAD */
     pointer-events: none;
     overflow: visible;
     z-index: 0;
   }
 
-  .frame-particle {
+  .frame-dither-canvas {
     position: absolute;
-    width: var(--size, 2px);
-    height: var(--size, 2px);
-    border-radius: 50%;
-    background: var(--color-fuchsia);
-    box-shadow: 0 0 5px rgba(175, 74, 90, 0.35);
-    opacity: 0;
-    animation: escape-frame var(--life) linear infinite;
-    animation-delay: var(--delay);
-    will-change: transform, opacity;
-  }
-
-  @keyframes escape-frame {
-    0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.25); }
-    10% { opacity: 0.85; }
-    48% { opacity: 0.5; }
-    100% { opacity: 0; transform: translate3d(var(--dx), var(--dy), 0) scale(0.05); }
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: -webkit-optimize-contrast;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -738,7 +741,8 @@ const projectPreview = [
     window.addEventListener('resize', render);
   }
 
-  // --- Organic particles escaping every framed section ---
+  // --- Scroll speed tracker (used to pulse the dithered frames faster
+  //     while the page is being scrolled quickly) ---
   const frameSpeed = { value: 0 };
   let lastScrollY = window.scrollY;
   let lastScrollTime = performance.now();
@@ -752,43 +756,222 @@ const projectPreview = [
   }
   window.addEventListener('scroll', updateScrollSpeed, { passive: true });
 
-  function seedFrameParticles(container: HTMLElement) {
-    const amount = 44;
-    for (let i = 0; i < amount; i++) {
-      const p = document.createElement('span');
-      p.className = 'frame-particle';
-      const edge = Math.floor(Math.random() * 4);
-      const along = Math.random() * 100;
-      let x = along, y = along;
-      if (edge === 0) { x = along; y = 0; }
-      if (edge === 1) { x = 100; y = along; }
-      if (edge === 2) { x = along; y = 100; }
-      if (edge === 3) { x = 0; y = along; }
-      const outward = 8 + Math.random() * 34;
-      const angle = Math.random() * Math.PI * 2;
-      p.style.left = `${x}%`;
-      p.style.top = `${y}%`;
-      p.style.setProperty('--dx', `${Math.cos(angle) * outward}px`);
-      p.style.setProperty('--dy', `${Math.sin(angle) * outward}px`);
-      p.style.setProperty('--size', `${1 + Math.random() * 2.2}px`);
-      p.style.setProperty('--life', `${1.8 + Math.random() * 2.4}s`);
-      p.style.setProperty('--delay', `${-Math.random() * 4}s`);
-      container.appendChild(p);
+  // =================================================================
+  // DITHERED FRAME PARAMETERS — the pixelated border + particle
+  // effect that surrounds the About-section blocks (Education &
+  // Experience, Projects preview, Let's Connect). The border itself
+  // stays aligned to the block; FRAME_PAD only provides room for the
+  // dither transition and escaping particles.
+  // =================================================================
+  // Reads --color-fuchsia-soft (the same variable h2 titles use) at
+  // runtime, so the dithered border always matches the headings even
+  // if you change that variable later. Falls back to the fuchsia if
+  // the variable isn't found for some reason.
+  const FRAME_DITHER_COLOR =
+    getComputedStyle(document.documentElement).getPropertyValue('--color-fuchsia-soft').trim() ||
+    '#af4a5a';
+  const FRAME_BORDER_BAND = 2;       // px: thickness of the solid-ish pixel border
+  const FRAME_TRANSITION = 12;       // px: how far the border dissolves into dither before it's just loose particles
+  const FRAME_PAD = 46;              // px: canvas padding around each block — must exceed transition + particle travel distance, and matches the .frame-particles inset above
+  const FRAME_SPAWN_CHANCE = 0.55;   // 0–1: probability a new particle batch spawns each frame
+  const FRAME_SPAWN_PER_100PX = 50;   // particles spawned per 100px of block perimeter, per batch
+  const FRAME_MAX_PARTICLES = 600;   // hard cap per block, keeps things performant
+  const FRAME_PARTICLE_SIZE: [number, number] = [1, 2.4];       // px [min, max]
+  const FRAME_PARTICLE_SPEED: [number, number] = [0.12, 0.55];  // px/frame outward drift [min, max]
+  const FRAME_PARTICLE_DRIFT = 0.35;                            // sideways wobble strength
+  const FRAME_PARTICLE_DECAY: [number, number] = [0.006, 0.016];// alpha lost per frame [min, max]
+  // =================================================================
+
+  interface FrameParticle {
+    x: number; y: number; vx: number; vy: number;
+    size: number; alpha: number; decay: number;
+    wobbleSeed: number; wobbleSpeed: number;
+  }
+
+  interface DitherFrameState {
+    block: HTMLElement;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    width: number;
+    height: number;
+    particles: FrameParticle[];
+  }
+
+  function perimeter(w: number, h: number) {
+    return 2 * (w + h);
+  }
+
+  function drawDitherEdge(state: DitherFrameState) {
+    const { ctx, width: w, height: h } = state;
+    const pad = FRAME_PAD;
+    const band = FRAME_BORDER_BAND;
+    const trans = FRAME_TRANSITION;
+    const span = band + trans;
+
+    ctx.fillStyle = FRAME_DITHER_COLOR;
+
+    // Top + bottom edges (the loop range covers the corners too).
+    for (let d = 0; d < span; d += 2) {
+      const solid = d < band;
+      const threshold = solid ? 1 : 1 - (d - band) / trans;
+
+      for (let x = 0; x < w; x += 2) {
+        const bx = pad + x;
+        const bayer = BAYER4[Math.floor(d / 2) % 4][Math.floor(bx / 2) % 4];
+        if (solid || threshold > bayer) {
+          ctx.fillRect(bx, pad - d, 2, 2);
+          ctx.fillRect(bx, pad + h + d - 2, 2, 2);
+        }
+      }
+    }
+
+    // Left + right edges.
+    for (let d = 0; d < span; d += 2) {
+      const solid = d < band;
+      const threshold = solid ? 1 : 1 - (d - band) / trans;
+
+      for (let y = 0; y < h; y += 2) {
+        const by = pad + y;
+        const bayer = BAYER4[Math.floor(by / 2) % 4][Math.floor(d / 2) % 4];
+        if (solid || threshold > bayer) {
+          ctx.fillRect(pad - d, by, 2, 2);
+          ctx.fillRect(pad + w + d - 2, by, 2, 2);
+        }
+      }
     }
   }
 
-  document.querySelectorAll<HTMLElement>('.frame-particles').forEach(seedFrameParticles);
+  function spawnFrameParticles(state: DitherFrameState, count: number) {
+    const { width: w, height: h, particles } = state;
+    const total = perimeter(w, h);
 
-  // Scroll velocity temporarily accelerates the escaping particles.
-  let framePulse = 0;
-  function pulseFrameParticles() {
-    const speed = frameSpeed.value;
-    if (speed > 0.08) framePulse = Math.min(1, framePulse + speed * 0.08);
-    else framePulse *= 0.92;
-    document.querySelectorAll<HTMLElement>('.frame-particle').forEach((p) => {
-      p.style.animationDuration = `${Math.max(0.65, 3.2 - framePulse * 1.8)}s`;
-    });
-    requestAnimationFrame(pulseFrameParticles);
+    for (let i = 0; i < count; i++) {
+      let d = Math.random() * total;
+      let x: number, y: number, nx: number, ny: number;
+
+      if (d < w) { x = d; y = 0; nx = 0; ny = -1; }
+      else if ((d -= w) < h) { x = w; y = d; nx = 1; ny = 0; }
+      else if ((d -= h) < w) { x = w - d; y = h; nx = 0; ny = 1; }
+      else { d -= w; x = 0; y = h - d; nx = -1; ny = 0; }
+
+      const speed = FRAME_PARTICLE_SPEED[0] + Math.random() * (FRAME_PARTICLE_SPEED[1] - FRAME_PARTICLE_SPEED[0]);
+
+      particles.push({
+        x, y,
+        vx: nx * speed, vy: ny * speed,
+        size: FRAME_PARTICLE_SIZE[0] + Math.random() * (FRAME_PARTICLE_SIZE[1] - FRAME_PARTICLE_SIZE[0]),
+        alpha: 0.75 + Math.random() * 0.25,
+        decay: FRAME_PARTICLE_DECAY[0] + Math.random() * (FRAME_PARTICLE_DECAY[1] - FRAME_PARTICLE_DECAY[0]),
+        wobbleSeed: Math.random() * Math.PI * 2,
+        wobbleSpeed: 0.02 + Math.random() * 0.03,
+      });
+    }
+
+    if (particles.length > FRAME_MAX_PARTICLES) {
+      particles.splice(0, particles.length - FRAME_MAX_PARTICLES);
+    }
   }
-  if (!reduceMotion) requestAnimationFrame(pulseFrameParticles);
+
+  function stepDitherFrame(state: DitherFrameState, pulse: number) {
+    const { ctx, width: w, height: h, particles } = state;
+    const pad = FRAME_PAD;
+
+    ctx.clearRect(0, 0, w + pad * 2, h + pad * 2);
+    drawDitherEdge(state);
+
+    const chance = FRAME_SPAWN_CHANCE * (0.4 + pulse * 0.6);
+    if (Math.random() < chance) {
+      const count = Math.max(1, Math.round((perimeter(w, h) / 100) * FRAME_SPAWN_PER_100PX));
+      spawnFrameParticles(state, count);
+    }
+
+    ctx.fillStyle = FRAME_DITHER_COLOR;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.vx += Math.cos(p.wobbleSeed) * FRAME_PARTICLE_DRIFT * 0.01;
+      p.vy += Math.sin(p.wobbleSeed) * FRAME_PARTICLE_DRIFT * 0.01;
+      p.wobbleSeed += p.wobbleSpeed;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha -= p.decay;
+
+      if (p.alpha <= 0) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillRect(Math.round(pad + p.x), Math.round(pad + p.y), p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function makeDitherFrame(container: HTMLElement): DitherFrameState | null {
+    const block = container.parentElement as HTMLElement | null;
+    if (!block) return null;
+
+    // Guard against duplicate mounts (e.g. dev-server hot reloads
+    // re-running this script without a full page refresh) — without
+    // this, a second stray canvas would stack on top of the first
+    // and could report a stale/mismatched size, which is what caused
+    // the border to overshoot the box.
+    container.querySelectorAll('.frame-dither-canvas').forEach((el) => el.remove());
+
+    // Set the inset BEFORE measuring, so the very first measurement
+    // already reflects the padded box.
+    container.style.inset = `-${FRAME_PAD}px`;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'frame-dither-canvas';
+    container.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const state: DitherFrameState = { block, canvas, ctx, width: 0, height: 0, particles: [] };
+
+    function resize() {
+      // Measure the padded CONTAINER itself (not the block + an
+      // assumed pad) so the canvas can never drift out of sync with
+      // its own inset — this is the single source of truth for size.
+      const rect = container.getBoundingClientRect();
+      const totalW = Math.max(1, Math.round(rect.width));
+      const totalH = Math.max(1, Math.round(rect.height));
+      state.width = Math.max(1, totalW - FRAME_PAD * 2);
+      state.height = Math.max(1, totalH - FRAME_PAD * 2);
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(totalW * dpr);
+      canvas.height = Math.round(totalH * dpr);
+      canvas.style.width = `${totalW}px`;
+      canvas.style.height = `${totalH}px`;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    if ('ResizeObserver' in window) new ResizeObserver(resize).observe(block);
+
+    return state;
+  }
+
+  const ditherFrames = Array.from(document.querySelectorAll<HTMLElement>('.frame-particles'))
+    .map(makeDitherFrame)
+    .filter((s): s is DitherFrameState => s !== null);
+
+  if (ditherFrames.length) {
+    if (!reduceMotion) {
+      let framePulse = 0;
+      function tickFrames() {
+        const speed = frameSpeed.value;
+        if (speed > 0.08) framePulse = Math.min(1, framePulse + speed * 0.08);
+        else framePulse *= 0.92;
+        ditherFrames.forEach((state) => stepDitherFrame(state, framePulse));
+        requestAnimationFrame(tickFrames);
+      }
+      requestAnimationFrame(tickFrames);
+    } else {
+      // Reduced motion: draw a single static dithered border, no particles.
+      ditherFrames.forEach((state) => drawDitherEdge(state));
+    }
+  }
 </script>
