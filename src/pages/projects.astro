@@ -90,22 +90,26 @@ const projects = [
     position: relative;
     overflow: visible;
     background-color: #141414;
-    border: 1px solid #262626;
-    border-left: 3px solid var(--color-fuchsia);
-    border-radius: 10px;
+    border: 0;
+    border-left: 3px solid var(--color-fuchsia-soft);
+    border-radius: 0 10px 10px 0;
     padding: 1.5rem 1.75rem;
   }
 
+  /* Dither fades outward from the straight left edge only. */
   .project-card::after {
     content: "";
     position: absolute;
-    inset: -5px;
+    top: 0;
+    bottom: 0;
+    left: -16px;
+    width: 16px;
     pointer-events: none;
-    opacity: 0.18;
-    background-image: radial-gradient(circle, var(--color-fuchsia) 0 0.8px, transparent 1px);
-    background-size: 7px 7px;
-    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    opacity: 0.8;
+    background-image: radial-gradient(circle, var(--color-fuchsia-soft) 0 0.8px, transparent 1px);
+    background-size: 6px 6px;
+    mask-image: linear-gradient(to right, transparent 0%, black 75%, black 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 75%, black 100%);
   }
 
   .project-name {

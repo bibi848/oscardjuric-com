@@ -40,12 +40,12 @@
 
 <script>
   // POINTING HAND PARAMETERS
-  const HAND_WORK_WIDTH = 260;    // internal render resolution (px) — higher = crisper but slower
-  const HAND_REST_X = 1;     // resting position: just beyond the right edge
-  const HAND_ACTIVE_X = -1;    // hovered position: mostly on-screen, flush with the right edge
-  const HAND_FOLLOW = 0.3;       // 0–1 easing speed toward its target each frame — higher is snappier, lower is floatier
-  const HAND_VERTICAL_OFFSET = 0; // px — nudge the hand up/down relative to the hovered block's centre
-  const DITHER_ENABLED = true;    // false = smooth (non-pixelated) hand, for comparison
+  const HAND_WORK_WIDTH = 260;     // internal render resolution (px) — higher = crisper but slower
+  const HAND_REST_X = 1;           // resting position: just beyond the right edge
+  const HAND_ACTIVE_X = -1;        // hovered position: mostly on-screen, flush with the right edge
+  const HAND_FOLLOW = 0.3;         // 0–1 easing speed toward its target each frame — higher is snappier, lower is floatier
+  const HAND_VERTICAL_OFFSET = 40; // px — nudge the hand up/down relative to the hovered block's centre
+  const DITHER_ENABLED = true;     // false = smooth (non-pixelated) hand, for comparison
   const HAND_TARGET_SELECTOR = '.preview-block, .framed-cta'; // which elements trigger the hand
 
   const PALETTE: [number, number, number][] = [

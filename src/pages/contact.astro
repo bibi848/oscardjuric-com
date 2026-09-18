@@ -54,23 +54,27 @@ const links = [
     position: relative;
     overflow: visible;
     background-color: #151515;
-    border-left: 3px solid var(--color-fuchsia);
+    border-left: 3px solid var(--color-fuchsia-soft);
     padding: 1rem 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
   }
 
+  /* Dither fades outward from the straight left edge only. */
   .contact-list li::after {
     content: "";
     position: absolute;
-    inset: -5px;
+    top: 0;
+    bottom: 0;
+    left: -16px;
+    width: 16px;
     pointer-events: none;
-    opacity: 0.14;
-    background-image: radial-gradient(circle, var(--color-fuchsia) 0 0.8px, transparent 1px);
-    background-size: 8px 8px;
-    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    opacity: 0.8;
+    background-image: radial-gradient(circle, var(--color-fuchsia-soft) 0 0.8px, transparent 1px);
+    background-size: 6px 6px;
+    mask-image: linear-gradient(to right, transparent 0%, black 75%, black 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 75%, black 100%);
   }
 
   .label {

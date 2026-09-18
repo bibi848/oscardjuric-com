@@ -4,8 +4,8 @@ import Layout from '../layouts/Layout.astro';
 const education = [
   {
     period: '10/2026 – Present',
-    title: 'PhD, Computational Engineering',
-    org: 'Imperial College London — Department of Aeronautics, SherwinLab',
+    title: 'PhD, Aeronautical Computational Engineering',
+    org: 'Imperial College London — Department of Aeronautics, Nektar++',
     details: [
       'Novel algorithms for load rebalancing of adaptive mesh simulations on heterogeneous clusters.',
       'Industrial partners: McLaren F1, Rolls-Royce, and UKAEA.',
@@ -70,8 +70,8 @@ const experience = [
 ];
 ---
 
-<Layout title="Experience & Education | Oscar Djuric">
-  <h1 class="page-title">Experience &amp; Education</h1>
+<Layout title="Education & Experience | Oscar Djuric">
+  <h1 class="page-title">Education &amp; Experience</h1>
 
   <section class="content-section">
     <h2>Education</h2>
@@ -139,21 +139,25 @@ const experience = [
     display: grid;
     grid-template-columns: 8rem 1fr;
     gap: 1rem;
-    border-left: 3px solid var(--color-fuchsia);
+    border-left: 3px solid var(--color-fuchsia-soft);
     padding: 0.75rem 0 0.75rem 1.25rem;
     background-color: rgba(19, 19, 19, 0.8);
   }
 
+  /* Dither fades outward from the straight left edge only. */
   .timeline-item::after {
     content: "";
     position: absolute;
-    inset: -5px;
+    top: 0;
+    bottom: 0;
+    left: -16px;
+    width: 16px;
     pointer-events: none;
-    opacity: 0.15;
-    background-image: radial-gradient(circle, var(--color-fuchsia) 0 0.8px, transparent 1px);
-    background-size: 8px 8px;
-    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    opacity: 0.8;
+    background-image: radial-gradient(circle, var(--color-fuchsia-soft) 0 0.8px, transparent 1px);
+    background-size: 6px 6px;
+    mask-image: linear-gradient(to right, transparent 0%, black 75%, black 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 75%, black 100%);
   }
 
   .timeline-period {
