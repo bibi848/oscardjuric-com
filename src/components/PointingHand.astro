@@ -40,13 +40,13 @@
 
 <script>
   // POINTING HAND PARAMETERS
-  const HAND_WORK_WIDTH = 260;     // internal render resolution (px) — higher = crisper but slower
-  const HAND_REST_X = 1;           // resting position: just beyond the right edge
-  const HAND_ACTIVE_X = -1;        // hovered position: mostly on-screen, flush with the right edge
-  const HAND_FOLLOW = 0.3;         // 0–1 easing speed toward its target each frame — higher is snappier, lower is floatier
-  const HAND_VERTICAL_OFFSET = 40; // px — nudge the hand up/down relative to the hovered block's centre
-  const DITHER_ENABLED = true;     // false = smooth (non-pixelated) hand, for comparison
-  const HAND_TARGET_SELECTOR = '.preview-block, .framed-cta'; // which elements trigger the hand
+  const HAND_WORK_WIDTH = 260;
+  const HAND_REST_X = 1.05;
+  const HAND_FINGER_GAP = 24;       // px gap between fingertip and box
+  const HAND_FOLLOW = 0.3;
+  const HAND_VERTICAL_OFFSET = 40;
+  const DITHER_ENABLED = true;
+  const HAND_TARGET_SELECTOR = '.preview-block, .framed-cta';
 
   const PALETTE: [number, number, number][] = [
     [10, 10, 10],
@@ -68,7 +68,12 @@
     [15, 7, 13, 5],
   ].map((row) => row.map((v) => (v + 0.5) / 16));
 
-  function blurAlpha(alpha: Float32Array, w: number, h: number, radius: number) {
+  function blurAlpha(
+    alpha: Float32Array,
+    w: number,
+    h: number,
+    radius: number
+  ) {
     if (radius <= 0) return alpha;
 
     const tmp = new Float32Array(w * h);
@@ -77,28 +82,36 @@
 
     for (let y = 0; y < h; y++) {
       let sum = 0;
+
       for (let x = -radius; x <= radius; x++) {
         const xx = Math.min(w - 1, Math.max(0, x));
         sum += alpha[y * w + xx];
       }
+
       for (let x = 0; x < w; x++) {
         tmp[y * w + x] = sum / span;
+
         const addX = Math.min(w - 1, x + radius + 1);
         const remX = Math.max(0, x - radius);
+
         sum += alpha[y * w + addX] - alpha[y * w + remX];
       }
     }
 
     for (let x = 0; x < w; x++) {
       let sum = 0;
+
       for (let y = -radius; y <= radius; y++) {
         const yy = Math.min(h - 1, Math.max(0, y));
         sum += tmp[yy * w + x];
       }
+
       for (let y = 0; y < h; y++) {
         out[y * w + x] = sum / span;
+
         const addY = Math.min(h - 1, y + radius + 1);
         const remY = Math.max(0, y - radius);
+
         sum += tmp[addY * w + x] - tmp[remY * w + x];
       }
     }
@@ -106,8 +119,6 @@
     return out;
   }
 
-  // Same Bayer/palette quantisation technique as the cursor eye, applied
-  // to the hand's own alpha silhouette (no socket mask needed here).
   function ditherImageData(imageData: ImageData): ImageData {
     const { width: w, height: h, data } = imageData;
     const count = w * h;
@@ -129,18 +140,30 @@
       for (let x = 0; x < w; x++) {
         const i = y * w + x;
         const o = i * 4;
+
         const threshold = BAYER4[y % 4][x % 4];
         const l = gray[i];
 
         let idx = 0;
+
         if (l <= PAL_LUM[0]) {
           idx = 0;
         } else if (l >= PAL_LUM[lastPal]) {
           idx = lastPal;
         } else {
           let lo = 0;
-          while (lo < lastPal - 1 && l > PAL_LUM[lo + 1]) lo++;
-          const frac = (l - PAL_LUM[lo]) / (PAL_LUM[lo + 1] - PAL_LUM[lo]);
+
+          while (
+            lo < lastPal - 1 &&
+            l > PAL_LUM[lo + 1]
+          ) {
+            lo++;
+          }
+
+          const frac =
+            (l - PAL_LUM[lo]) /
+            (PAL_LUM[lo + 1] - PAL_LUM[lo]);
+
           idx = frac > threshold ? lo + 1 : lo;
         }
 
@@ -151,7 +174,8 @@
         out.data[o] = r;
         out.data[o + 1] = g;
         out.data[o + 2] = b;
-        out.data[o + 3] = idx === 0 || !alphaOn ? 0 : 255;
+        out.data[o + 3] =
+          idx === 0 || !alphaOn ? 0 : 255;
       }
     }
 
@@ -161,19 +185,32 @@
   function loadImage(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
+
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error(`Failed to load ${src}`));
+      img.onerror = () =>
+        reject(new Error(`Failed to load ${src}`));
+
       img.src = src;
     });
   }
 
-  async function renderHand(src: string, canvas: HTMLCanvasElement) {
+  async function renderHand(
+    src: string,
+    canvas: HTMLCanvasElement
+  ) {
     const img = await loadImage(src);
+
     const w = HAND_WORK_WIDTH;
-    const h = Math.round(w * (img.naturalHeight / img.naturalWidth || 470 / 780));
+    const h = Math.round(
+      w *
+        (img.naturalHeight /
+          img.naturalWidth ||
+          470 / 780)
+    );
 
     canvas.width = w;
     canvas.height = h;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -182,85 +219,200 @@
 
     if (!DITHER_ENABLED) return;
 
-    const raw = ctx.getImageData(0, 0, w, h);
-    ctx.putImageData(ditherImageData(raw), 0, 0);
+    const raw = ctx.getImageData(
+      0,
+      0,
+      w,
+      h
+    );
+
+    ctx.putImageData(
+      ditherImageData(raw),
+      0,
+      0
+    );
   }
 
-  const hand = document.getElementById('pointing-hand');
-  const handCanvas = document.getElementById('pointing-hand-canvas') as HTMLCanvasElement | null;
-  const targets = Array.from(document.querySelectorAll<HTMLElement>(HAND_TARGET_SELECTOR));
+  const hand = document.getElementById(
+    'pointing-hand'
+  );
 
-  // Guard against duplicate mounts (e.g. dev-server hot reloads
-  // re-running this script and stacking a second set of listeners).
-  if (hand && handCanvas && targets.length && !hand.dataset.bound) {
+  const handCanvas =
+    document.getElementById(
+      'pointing-hand-canvas'
+    ) as HTMLCanvasElement | null;
+
+  const targets = Array.from(
+    document.querySelectorAll<HTMLElement>(
+      HAND_TARGET_SELECTOR
+    )
+  );
+
+  if (
+    hand &&
+    handCanvas &&
+    targets.length &&
+    !hand.dataset.bound
+  ) {
     hand.dataset.bound = 'true';
 
-    renderHand('/Images/pointing_hand.png', handCanvas).catch((err) => {
-      // If you're seeing the hand never appear, open devtools and
-      // check for this warning — it almost always means
-      // /Images/pointing_hand.png isn't actually reachable at that
-      // path (confirm it's in public/Images/ in the project root).
-      console.warn('[PointingHand] could not load hand asset:', err);
+    renderHand(
+      '/Images/pointing_hand.png',
+      handCanvas
+    ).catch((err) => {
+      console.warn(
+        '[PointingHand] could not load hand asset:',
+        err
+      );
+
       hand.style.display = 'none';
     });
 
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
 
-    let targetXFrac = HAND_REST_X;
+    let targetX = 0;
     let targetY = 0;
-    let currentXFrac = HAND_REST_X;
+
+    let currentX = 0;
     let currentY = 0;
+
+    let activeTarget: HTMLElement | null = null;
+
     let animationFrame = 0;
+
+    /*
+     * The hand is positioned from the viewport's right edge.
+     * Instead of giving it a fixed percentage offset, we calculate
+     * where the box actually is and put the fingertip a fixed
+     * distance away from it.
+     */
+    function getRestX() {
+      const handWidth =
+        hand!.getBoundingClientRect().width;
+
+      return handWidth * HAND_REST_X;
+    }
 
     function applyTransform() {
       hand!.style.transform =
-        `translate3d(${currentXFrac * 100}%, calc(-50% + ${currentY}px), 0)`;
+        `translate3d(${currentX}px, calc(-50% + ${currentY}px), 0)`;
     }
 
     function pointAt(el: HTMLElement) {
-      const rect = el.getBoundingClientRect();
-      const viewportCenter = window.innerHeight / 2;
-      targetY = rect.top + rect.height / 2 - viewportCenter + HAND_VERTICAL_OFFSET;
-      targetXFrac = HAND_ACTIVE_X;
+      activeTarget = el;
+
+      const rect =
+        el.getBoundingClientRect();
+
+      const handRect =
+        hand!.getBoundingClientRect();
+
+      const viewportCenter =
+        window.innerHeight / 2;
+
+      /*
+       * The hand's natural position is with its right edge
+       * against the viewport's right edge.
+       *
+       * We move it left/right until the left side of the hand
+       * sits HAND_FINGER_GAP pixels to the right of the box.
+       */
+      const desiredHandLeft =
+        rect.right + HAND_FINGER_GAP;
+
+      const baseHandLeft =
+        window.innerWidth -
+        handRect.width;
+
+      targetX =
+        desiredHandLeft -
+        baseHandLeft;
+
+      targetY =
+        rect.top +
+        rect.height / 2 -
+        viewportCenter +
+        HAND_VERTICAL_OFFSET;
+
       if (reduceMotion) {
+        currentX = targetX;
         currentY = targetY;
-        currentXFrac = targetXFrac;
         applyTransform();
       }
     }
 
     function retreat() {
-      targetXFrac = HAND_REST_X;
+      activeTarget = null;
+
+      targetX = getRestX();
+
       if (reduceMotion) {
-        currentXFrac = targetXFrac;
+        currentX = targetX;
         applyTransform();
       }
     }
 
     function animate() {
-      currentXFrac += (targetXFrac - currentXFrac) * HAND_FOLLOW;
-      currentY += (targetY - currentY) * HAND_FOLLOW;
+      currentX +=
+        (targetX - currentX) *
+        HAND_FOLLOW;
+
+      currentY +=
+        (targetY - currentY) *
+        HAND_FOLLOW;
+
       applyTransform();
-      animationFrame = requestAnimationFrame(animate);
+
+      animationFrame =
+        requestAnimationFrame(animate);
     }
 
-    // The hover interaction always works, regardless of the user's
-    // motion preference — reduced motion only removes the smooth
-    // glide (pointAt/retreat snap instantly instead of easing).
     targets.forEach((el) => {
-      el.addEventListener('mouseenter', () => pointAt(el));
-      el.addEventListener('mouseleave', retreat);
-      el.addEventListener('focusin', () => pointAt(el));
-      el.addEventListener('focusout', retreat);
+      el.addEventListener(
+        'mouseenter',
+        () => pointAt(el)
+      );
+
+      el.addEventListener(
+        'mouseleave',
+        retreat
+      );
+
+      el.addEventListener(
+        'focusin',
+        () => pointAt(el)
+      );
+
+      el.addEventListener(
+        'focusout',
+        retreat
+      );
     });
 
-    // Make sure the very first paint matches HAND_REST_X, even if the
-    // CSS fallback transform in the <style> block above hasn't been
-    // kept in sync with it.
+    /*
+     * Recalculate the hand position whenever the viewport
+     * changes size. This prevents the hand from drifting
+     * into the box on narrower screens.
+     */
+    window.addEventListener('resize', () => {
+      if (activeTarget) {
+        pointAt(activeTarget);
+      } else {
+        targetX = getRestX();
+      }
+    });
+
+    // Initial resting position.
+    targetX = getRestX();
+    currentX = targetX;
+
     applyTransform();
 
     if (!reduceMotion) {
-      animationFrame = requestAnimationFrame(animate);
+      animationFrame =
+        requestAnimationFrame(animate);
     }
   }
 </script>
